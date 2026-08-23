@@ -20,7 +20,7 @@
       "Bash(cat *)",
       "Bash(echo *)",
       "Bash(mkdir *)",
-      "Bash(open -na *)"
+      "Bash(uvx *)"
     ],
     "deny": [
       "Bash(rm -rf /*)",

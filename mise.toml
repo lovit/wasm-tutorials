@@ -4,6 +4,8 @@
 [tools]
 node = "24"
 python = "3.14"
+# lint:py 와 docs:packages 가 uvx 를 부른다
+uv = "latest"
 
 [env]
 # .env 가 있으면 읽어서 아래 기본값을 덮어쓴다. 파일이 없어도 오류가 아니다.

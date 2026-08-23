@@ -7,12 +7,16 @@ WebAssembly 위에서 도는 파이썬, Pyodide 를 예제로 익히는 학습�
 Pyodide 는 CPython 을 WebAssembly 로 컴파일한 것이다. 서버 없이, 설치 없이, 브라우저 탭 안에서 진짜 파이썬이 돈다. numpy 도 pandas 도 scikit-learn 도 그대로 돈다.
 
 ```js
-const pyodide = await loadPyodide();
+import { getPyodide } from './galleries/_shared/pyodide.js';
+
+const pyodide = await getPyodide();
 pyodide.runPython(`
 import sys
 print(sys.version)
 `);
 ```
+
+Pyodide 자체의 API 는 `loadPyodide()` 지만, 이 저장소의 예제는 `_shared/pyodide.js` 를 거친다. 버전을 한 곳에서 관리하고 런타임을 두 번 내려받지 않기 위해서다.
 
 내려받는 양이 적지 않고(런타임만 6MB 남짓) 네이티브보다 몇 배 느리며 소켓도 스레드도 없다. 그 제약이 어디서 오고 무엇으로 우회하는지가 이 저장소가 다루는 내용의 절반이다.
 

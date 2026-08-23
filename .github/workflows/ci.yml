@@ -27,3 +27,10 @@ jobs:
 
       - name: 저장소 검사
         run: mise run check
+
+      # 사이트 빌드가 깨진 채로 머지되면 배포가 실패한다. PR 단계에서 잡는다.
+      # 토큰 없이도 마크다운을 원문으로 보여 주는 쪽으로 물러서며 끝까지 돈다.
+      - name: 사이트 빌드 확인
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: mise run site
