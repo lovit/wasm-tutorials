@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>02. 로딩 비용 드러내기 — Pyodide 갤러리</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">← 갤러리 목록</a>
+      <h1>02. 로딩 비용 드러내기</h1>
+      <p class="lede">
+        런타임만으로는 아무것도 못 한다. numpy 도 pandas 도 따로 받아야 하고, 그것들은 자기 의존성을
+        함께 끌고 온다. 얼마가 더 드는지 골라서 받아 본다.
+      </p>
+
+      <pre class="output" id="boot">준비 중입니다</pre>
+
+      <section>
+        <h2>무엇을 받을까</h2>
+        <fieldset id="picker" aria-describedby="closure">
+          <legend>패키지 고르기</legend>
+          <label><input type="checkbox" value="numpy" checked /> numpy</label>
+          <label><input type="checkbox" value="pandas" /> pandas</label>
+          <label><input type="checkbox" value="matplotlib" /> matplotlib</label>
+          <label><input type="checkbox" value="scikit-learn" /> scikit-learn</label>
+        </fieldset>
+        <p class="hint" id="closure" role="status">
+          고른 것이 끌고 오는 패키지를 여기에 보여 줍니다.
+        </p>
+        <div class="controls">
+          <button id="load" type="button" disabled>지금 받기</button>
+          <span class="hint" id="load-hint" role="status"></span>
+        </div>
+      </section>
+
+      <section>
+        <h2>받는 동안</h2>
+        <pre class="output log" id="log" role="status">아직 받지 않았습니다.</pre>
+      </section>
+
+      <section>
+        <h2>이번에 든 비용</h2>
+        <table class="metrics" id="cost">
+          <thead>
+            <tr>
+              <th scope="col">항목</th>
+              <th scope="col">값</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>정말 쓸 수 있나</h2>
+        <pre class="output" id="check" role="status">받고 나면 확인합니다.</pre>
+      </section>
+
+      <section>
+        <h2>부팅과 함께 받으면 더 빠를까</h2>
+        <p>
+          Pyodide 문서는 <code>loadPyodide({ packages })</code> 가 부팅 뒤
+          <code>loadPackage()</code> 를 부르는 것보다 빠르다고 한다. 부팅과 병렬로 내려받기
+          때문이다. 재 보면 조건에 따라 다르다. 얼마나 다른지는 이 예제의 튜토리얼에 표로 적어
+          두었다.
+        </p>
+        <p>
+          런타임은 페이지당 하나라서 한 화면에서 두 방식을 다 잴 수 없다. 아래 링크로 열면 같은
+          패키지를 부팅과 함께 받는다. 직접 비교하려면 캐시를 비우고 여는 것을 잊지 말자.
+        </p>
+        <div class="controls">
+          <a id="preload-link" href="./">고른 것을 부팅과 함께 받기</a>
+          <a href="./">아무것도 미리 받지 않기</a>
+        </div>
+      </section>
+
+      <p><a href="../01-hello-pyodide/">← 이전: 01. 브라우저에서 파이썬 띄우기</a></p>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
