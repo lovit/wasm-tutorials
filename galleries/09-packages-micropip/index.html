@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>09. PyPI 에서 설치하기 — Pyodide 갤러리</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">← 갤러리 목록</a>
+      <h1>09. PyPI 에서 설치하기</h1>
+      <p class="lede">
+        02번에서 받은 것은 Pyodide 가 미리 빌드해 둔 356개 안에서였다. 그 밖의 것을 쓰려면
+        <code>micropip</code> 이 필요하다. 무엇이 되고 무엇이 안 되는지 가리는 법을 익힌다.
+      </p>
+
+      <pre class="output" id="boot">준비 중입니다</pre>
+
+      <section>
+        <h2>될지 미리 가늠하기</h2>
+        <p class="hint">PyPI 에 어떤 파일이 올라와 있는지 물어보면 설치해 보기 전에 알 수 있다.</p>
+        <fieldset id="picker">
+          <legend>골라 보기</legend>
+        </fieldset>
+        <div class="controls">
+          <button id="inspect" type="button" disabled>PyPI 에 물어보기</button>
+          <button id="install" type="button" disabled>설치해 보기</button>
+        </div>
+        <pre class="output" id="inspect-result" role="status"></pre>
+        <pre class="output" id="install-result" role="status"></pre>
+      </section>
+
+      <section>
+        <h2>지금 올라와 있는 것</h2>
+        <div class="controls">
+          <button id="list" type="button" disabled>목록 보기</button>
+        </div>
+        <pre class="output" id="list-result" role="status"></pre>
+      </section>
+
+      <section>
+        <h2>설치한 것으로 한국어 만지기</h2>
+        <p class="hint">
+          <code>jamo</code> 와 <code>hgtk</code> 를 설치한 뒤 눌러 보자. 둘 다 순수 파이썬이라
+          브라우저에서 그대로 돈다.
+        </p>
+        <div class="controls">
+          <label for="text">문장</label>
+          <input id="text" type="text" value="브라우저에서 한글을 다룬다" disabled />
+          <button id="use" type="button" disabled>만져 보기</button>
+        </div>
+        <pre class="output" id="use-result" role="status"></pre>
+      </section>
+
+      <p><a href="../08-file-system/">← 이전: 08. 파일 다루기</a></p>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
