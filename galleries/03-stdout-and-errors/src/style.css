@@ -37,12 +37,3 @@ main > section > h3 {
     background: #2b0f11;
   }
 }
-
-/* base.css 의 label 은 블록이다. 체크박스 옆에 붙일 때는 한 줄로 둔다. */
-label.inline {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-  margin: 0;
-  font-size: 0.9rem;
-}
