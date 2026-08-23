@@ -1,0 +1,36 @@
+/* 체크박스는 가로로 흐르게 둔다. 항목이 짧아서 세로로 쌓으면 자리만 먹는다. */
+#picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0 0 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+#picker legend {
+  padding: 0 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* base.css 의 label 은 블록이다. 여기서는 체크박스와 한 줄에 놓는다. */
+#picker label {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0;
+  color: inherit;
+  font-size: 0.95rem;
+}
+
+/* 로그는 길어진다. 높이를 묶어 두고 안에서만 스크롤한다. */
+.log {
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+#boot {
+  white-space: pre-wrap;
+}

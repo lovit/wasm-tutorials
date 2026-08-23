@@ -7,6 +7,7 @@
 
 import { ensureSupport } from '../../_shared/support.js';
 import { getPyodide, renderPythonError, showLoading } from '../../_shared/pyodide.js';
+import { addMetricRow, formatBytes, formatMs } from '../../_shared/metrics.js';
 
 // 파이썬이 자기 자신을 소개하게 한다. sys.platform 이 emscripten 으로 나오는 것이 요점이다.
 // 마지막 문장이 표현식이라 그 값이 그대로 자바스크립트로 넘어온다.
@@ -79,32 +80,14 @@ function showCost(boot) {
   const decoded = entries.reduce((sum, entry) => sum + entry.decodedBodySize, 0);
   const fromCache = entries.filter((entry) => entry.transferSize === 0).length;
 
-  addRow('부팅에 걸린 시간', `${boot.toLocaleString()} ms`);
-  addRow('받은 파일 수', `${entries.length}개`);
-  addRow('네트워크를 탄 양', mib(transferred));
-  addRow('압축을 푼 뒤 크기', mib(decoded));
+  addMetricRow(costTable, '부팅에 걸린 시간', formatMs(boot));
+  addMetricRow(costTable, '받은 파일 수', `${entries.length}개`);
+  addMetricRow(costTable, '네트워크를 탄 양', formatBytes(transferred));
+  addMetricRow(costTable, '압축을 푼 뒤 크기', formatBytes(decoded));
 
   if (fromCache > 0) {
     cacheNote.textContent = `${entries.length}개 중 ${fromCache}개가 캐시에서 왔습니다. 그래서 이번 부팅이 빠릅니다. 처음 방문한 것처럼 보려면 캐시를 비우고 새로고침하세요.`;
   }
-}
-
-function addRow(label, value) {
-  const row = document.createElement('tr');
-  const head = document.createElement('th');
-  head.scope = 'row';
-  head.textContent = label;
-  const cell = document.createElement('td');
-  cell.textContent = value;
-  row.append(head, cell);
-  costTable.append(row);
-}
-
-/** 1024 로 나누므로 단위는 MiB 다. MB 로 적으면 십진 단위와 헷갈린다. */
-function mib(bytes) {
-  if (bytes === 0) return '0 (전부 캐시)';
-  const value = bytes / 1024 / 1024;
-  return value < 1 ? `${Math.round(bytes / 1024)} KiB` : `${value.toFixed(2)} MiB`;
 }
 
 /** 두 번째 호출이 얼마나 걸리는지. 런타임이 하나라는 것을 시간으로 보여 준다. */
