@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>04. 값이 오가는 규칙 — Pyodide 갤러리</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">← 갤러리 목록</a>
+      <h1>04. 값이 오가는 규칙</h1>
+      <p class="lede">
+        어떤 값은 복사돼 건너오고 어떤 값은 손잡이만 온다. 그 경계가 어디인지, 손잡이를 값으로
+        바꾸려면 무엇을 눌러야 하는지 직접 넣어 보며 확인한다.
+      </p>
+
+      <pre class="output" id="boot">준비 중입니다</pre>
+
+      <section>
+        <h2>파이썬에서 자바스크립트로</h2>
+        <div class="controls" id="py-samples"></div>
+        <label for="py-code">파이썬 표현식</label>
+        <textarea id="py-code" class="code" rows="2" spellcheck="false" disabled></textarea>
+
+        <fieldset id="opts">
+          <legend><code>toJs()</code> 옵션</legend>
+          <label class="inline" for="depth">depth</label>
+          <input type="range" id="depth" min="-1" max="3" step="1" value="-1" />
+          <output id="depth-out" for="depth">-1 (끝까지)</output>
+          <label class="inline"><input type="checkbox" id="as-map" /> dict 를 Map 으로</label>
+          <label class="inline"
+            ><input type="checkbox" id="no-proxy" /> 변환 못 하면 실패시키기</label
+          >
+        </fieldset>
+        <p class="note" id="combo-warning" hidden>
+          이걸 켜면 depth 슬라이더가 잠긴다. 두 옵션을 같이 주면 Pyodide 314.0.5 가 예외가 아니라
+          fatal error 를 내고 런타임이 통째로 죽는다. 새로고침 말고는 되살릴 방법이 없어서 아예
+          부르지 않는다.
+        </p>
+
+        <table class="metrics" id="py-result" role="status">
+          <thead>
+            <tr>
+              <th scope="col">항목</th>
+              <th scope="col">값</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>자바스크립트에서 파이썬으로</h2>
+        <p class="hint">
+          같은 값을 파이썬 쪽에서 보면 무엇으로 보이는지. 여기 있는 것은 전부 미리 넘겨 둔 값이다.
+        </p>
+        <table class="metrics wide" id="js-result">
+          <thead>
+            <tr>
+              <th scope="col">자바스크립트</th>
+              <th scope="col">파이썬 타입</th>
+              <th scope="col">파이썬에서 본 값</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>정수는 어디서 갈리나</h2>
+        <p class="hint">
+          파이썬 정수는 크기에 따라 <code>number</code> 로 오기도 하고 <code>bigint</code> 로 오기도
+          한다. 그 경계를 이 페이지가 직접 찾는다.
+        </p>
+        <table class="metrics" id="int-result">
+          <thead>
+            <tr>
+              <th scope="col">값</th>
+              <th scope="col">자바스크립트 타입</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <p><a href="../03-stdout-and-errors/">← 이전: 03. 출력과 오류를 화면으로</a></p>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
