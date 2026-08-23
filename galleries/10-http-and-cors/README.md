@@ -30,8 +30,6 @@ mise run serve
 ```python
 def try_requests(url: str) -> str:
     """평범한 requests. 314 에서는 urllib3 가 브라우저 쪽으로 우회해 준다."""
-    import requests
-
     response = requests.get(url, timeout=3)
     return f"{response.status_code}, {len(response.text)}자 ({type(response.raw).__module__})"
 ```
@@ -39,10 +37,8 @@ def try_requests(url: str) -> str:
 응답 객체가 어디서 왔는지 함께 찍어 보면 이유가 드러난다.
 
 ```text
-requests         200, 10287자 (urllib3.contrib.emscripten.response)  (345 ms)
+requests         200, 10287자 (urllib3.contrib.emscripten.response)  (7 ms)
 ```
-
-걸린 시간은 볼 때마다 다르다. 처음 한 번은 300ms 를 넘고 그다음부터는 한 자릿수로 떨어진다. urllib3 가 Emscripten 통로를 처음 쓸 때 준비하는 몫이라, 이 예제에서 유의미한 것은 숫자가 아니라 괄호 안이다.
 
 `urllib3.contrib.emscripten` 이다. urllib3 가 Emscripten 전용 통로를 갖게 되면서, 소켓 대신 브라우저의 fetch 와 XMLHttpRequest 로 나간다. `requests` 는 urllib3 위에 서 있으니 덩달아 된다.
 
@@ -55,8 +51,6 @@ requests         200, 10287자 (urllib3.contrib.emscripten.response)  (345 ms)
 ```python
 def try_urllib(url: str) -> str:
     """표준 라이브러리. 소켓과 TLS 를 거치려 한다."""
-    import urllib.request
-
     with urllib.request.urlopen(url, timeout=3) as response:
         return f"{response.status}"
 ```
@@ -86,9 +80,10 @@ def try_socket(url: str) -> str:
 
 **`connect()` 가 예외를 내지 않는다.** 없는 호스트에 대고 해도 그렇다.
 
+"층으로 갈라 보기" 가 없는 호스트도 함께 두드려 본다.
+
 ```text
-[없는 호스트]
-  connect: 예외 없음 (0ms)
+1. 소켓        예외 없이 연결된다. 없는 호스트에도 연결된다
 ```
 
 Emscripten 이 소켓 자리에 WebSocket 을 대신 열어 주기 때문이다. 콘솔을 보면 흔적이 남는다.
@@ -101,10 +96,10 @@ WebSocket connection to 'ws://example.com/' failed: WebSocket is closed before t
 
 | 타임아웃 | `connect()` | `sendall()` | `recv()` |
 | --- | --- | --- | --- |
-| 3초로 걸어 둠 | 예외 없음 (4 ms) | `TimeoutError: timed out` (0 ms) | 여기까지 못 온다 |
-| 안 걸어 둠 | 예외 없음 (0 ms) | 예외 없음 (0 ms) | `BlockingIOError: Resource temporarily unavailable` (0 ms) |
+| 3초로 걸어 둠 | 예외 없음 (0 ms) | `TimeoutError: timed out` (0 ms) | 여기까지 못 온다 |
+| 안 걸어 둠 | 예외 없음 (0 ms) | 예외 없음 (0 ms) | `BlockingIOError: [Errno 6] Resource temporarily unavailable` (0 ms) |
 
-둘 다 0 ms 다. 타임아웃 값과 상관없이 곧바로 끝난다.
+전부 0 ms 다. 타임아웃 값과 상관없이 곧바로 끝난다. 런타임 안에서 맨 처음 부르는 `connect()` 하나만 4 ms 쯤 걸리는데, 순서를 뒤집어 재 보면 타임아웃을 안 건 쪽이 4 ms 가 되므로 타임아웃과는 상관없는 준비 비용이다.
 
 이게 이 예제에서 가장 조심할 자리다. 깨끗하게 "못 한다" 고 말해 주면 그 자리에서 알아챌 텐데, 연결은 됐다고 해 놓고 주고받는 순간 정체 모를 오류를 낸다. 소켓을 쓰는 라이브러리를 브라우저로 옮기면 `TimeoutError` 나 `BlockingIOError` 로 나타나므로, 네트워크가 느린 줄 알고 엉뚱한 데를 짚기 쉽다.
 
@@ -172,7 +167,7 @@ Access to fetch at 'https://example.com/' from origin 'http://127.0.0.1:4173' ha
 
 그래서 이 예제를 "CORS 안 열린 곳" 으로 돌리면 콘솔에 빨간 줄이 남는다. 고장이 아니라 이 예제가 보여 주려는 것이다.
 
-어느 주소를 고르든 노란 줄도 하나 남는다. 소켓을 두드리느라 생긴 `WebSocket connection to 'ws://…' failed` 다. §3 에서 본 그것이다.
+어느 주소를 고르든 노란 줄도 한둘 남는다. 소켓을 두드리느라 생긴 `WebSocket connection to 'ws://…' failed` 다. §3 에서 본 그것이다. https 주소에서는 두 번 찍힌다. `urllib.request` 도 TLS 로 넘어가기 전에 소켓부터 열기 때문이다.
 
 같은 출처 주소에서 `requests` 가 거절하는 것도 눈여겨보자. 상대 경로에는 스킴이 없어서다. 브라우저 쪽 통로인 `pyfetch` 와 `open_url` 은 상대 경로를 현재 주소 기준으로 풀어 주는데, `requests` 는 그러지 않는다.
 
@@ -213,6 +208,6 @@ Access to fetch at 'https://example.com/' from origin 'http://127.0.0.1:4173' ha
 - 파이썬으로 화면을 만지고 함수를 주고받는 법 (06, 07)
 - 파일을 다루고 패키지를 얹고 네트워크를 쓰는 법 (08, 09, 10)
 
-관통하는 것이 하나 있다. **브라우저 안의 파이썬은 파이썬이 아니라 브라우저의 규칙을 따른다.** 손잡이를 놓아 줘야 하는 것도, 파일이 새로고침에 사라지는 것도, 소켓이 조용히 멈추는 것도 전부 같은 이야기다. 파이썬 문법은 그대로인데 그 아래가 다르다.
+관통하는 것이 하나 있다. **브라우저 안의 파이썬은 파이썬이 아니라 브라우저의 규칙을 따른다.** 손잡이를 놓아 줘야 하는 것도, 파일이 새로고침에 사라지는 것도, 소켓이 연결된 척하고 주고받는 순간 터지는 것도 전부 같은 이야기다. 파이썬 문법은 그대로인데 그 아래가 다르다.
 
 응용편에서는 이것들 위에 실제로 쓸 만한 것을 얹는다. [갤러리 목록](../)으로 돌아가자.

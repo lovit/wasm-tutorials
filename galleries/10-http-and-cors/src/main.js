@@ -92,8 +92,8 @@ function buildTargets() {
 /** 파이썬 함수를 부르고 결과를 상자에 적는다. 비동기든 아니든 같은 모양으로 다룬다. */
 async function run(box, name, ...args) {
   box.textContent = '두드려 보는 중입니다…';
-  const buttons = [probeButton, layersButton, missingButton];
-  for (const button of buttons) button.disabled = true;
+  const locked = [probeButton, layersButton, missingButton, urlInput];
+  for (const element of locked) element.disabled = true;
 
   const fn = pyGlobals.get(name);
   try {
@@ -103,6 +103,6 @@ async function run(box, name, ...args) {
     renderPythonError(box, error);
   } finally {
     fn.destroy();
-    for (const button of buttons) button.disabled = false;
+    for (const element of locked) element.disabled = false;
   }
 }

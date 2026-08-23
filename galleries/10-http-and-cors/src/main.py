@@ -3,10 +3,12 @@
 import socket
 import ssl
 import time
+import urllib.request
 from collections.abc import Callable
 from urllib.parse import urlparse
 
 import js
+import requests
 from pyodide.http import open_url, pyfetch
 
 TARGETS = {
@@ -26,11 +28,21 @@ def host_and_port(url: str) -> tuple[str, int]:
     조용한 대체값을 두지 않는다. 못 뽑으면 그렇다고 말하는 편이, 엉뚱한 데를 두드려 놓고
     그 결과를 이 주소의 결과인 양 보여 주는 것보다 낫다.
     """
-    text = url if "//" in url else f"//{js.location.host}{url}"
+    if "//" in url:
+        text = url
+    elif url.startswith("/"):
+        text = f"//{js.location.host}{url}"  # 경로만 준 것이니 지금 페이지의 호스트다
+    else:
+        text = f"//{url}"  # example.com 처럼 호스트만 준 것
     parsed = urlparse(text, scheme=js.location.protocol.rstrip(":"))
-    if not parsed.hostname:
+    try:
+        host, port = parsed.hostname, parsed.port
+    except ValueError as exc:
+        # urlparse 의 포트 오류 메시지는 우리가 붙인 // 까지 드러내서 읽는 사람을 헷갈리게 한다.
+        raise ValueError(f"주소에서 호스트를 못 뽑았습니다: {url}") from exc
+    if not host:
         raise ValueError(f"주소에서 호스트를 못 뽑았습니다: {url}")
-    return parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80)
+    return host, port or (443 if parsed.scheme == "https" else 80)
 
 
 async def try_pyfetch(url: str) -> str:
@@ -46,16 +58,12 @@ def try_open_url(url: str) -> str:
 
 def try_requests(url: str) -> str:
     """평범한 requests. 314 에서는 urllib3 가 브라우저 쪽으로 우회해 준다."""
-    import requests
-
     response = requests.get(url, timeout=3)
     return f"{response.status_code}, {len(response.text)}자 ({type(response.raw).__module__})"
 
 
 def try_urllib(url: str) -> str:
     """표준 라이브러리. 소켓과 TLS 를 거치려 한다."""
-    import urllib.request
-
     with urllib.request.urlopen(url, timeout=3) as response:
         return f"{response.status}"
 
@@ -114,15 +122,26 @@ def layers() -> str:
         sock.settimeout(2)
         try:
             sock.connect(("example.com", 80))
-            made = "예외 없이 연결된다. 없는 호스트에도 그렇다"
+            made = "예외 없이 연결된다"
         except Exception as exc:
             made = f"막힘 — {brief(exc)}"
+            sent = "연결이 안 됐으니 보내지 않았다"
+        else:
+            try:
+                sock.sendall(b"GET / HTTP/1.0\r\n\r\n")
+                sent = "예외 없음"
+            except Exception as exc:
+                sent = brief(exc)
+
+    # 없는 호스트에도 connect 가 되는 것이 WebSocket 설명의 근거다. 말로만 적지 않고 재 본다.
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as ghost:
+        ghost.settimeout(2)
         try:
-            sock.sendall(b"GET / HTTP/1.0\r\n\r\n")
-            sent = "예외 없음"
+            ghost.connect(("no-such-host.invalid", 80))
+            nowhere = "없는 호스트에도 연결된다"
         except Exception as exc:
-            sent = brief(exc)
-    lines.append(f"1. 소켓        {made}")
+            nowhere = f"막힘 — {brief(exc)}"
+    lines.append(f"1. 소켓        {made}. {nowhere}")
     lines.append(f"   그런데 보내려 하면 곧바로 막힌다 — {sent}")
     lines.append(
         "   콘솔에 WebSocket connection to 'ws://…' failed 가 남는 것이 그 흔적이다."
