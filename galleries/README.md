@@ -36,6 +36,7 @@ mise run serve    # http://localhost:4173/galleries/
 | 08 | [`08-file-system`](./08-file-system/) | 가짜 파일시스템, 파일 올리고 내려받기, 새로고침해도 남기기 |
 | 09 | [`09-packages-micropip`](./09-packages-micropip/) | PyPI 에서 바로 설치하기, 되는 것과 안 되는 것 가리기 |
 | 10 | [`10-http-and-cors`](./10-http-and-cors/) | 무엇이 어디서 막히는가. 소켓, TLS, CORS |
+| 11 | [`11-numpy-and-plots`](./11-numpy-and-plots/) | numpy 로 계산하고 그림을 화면에 올리는 두 가지 길 |
 
 ### 응용편
 
