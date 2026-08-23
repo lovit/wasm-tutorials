@@ -1,6 +1,11 @@
 {
-  "_comment": "이 파일을 .claude/settings.local.json 으로 복사해 개인 설정을 추가한다. gitignore 됨.",
+  "_comment": "이 파일을 .claude/settings.local.json 으로 복사해 개인 설정을 추가한다. gitignore 됨. settings.json 은 push 와 PR 생성/머지를 열어 두지 않는다. 바깥으로 나가는 일이라 각자 정하는 편이 맞다.",
   "permissions": {
-    "allow": ["Bash(gh pr create *)", "Bash(gh pr merge *)", "Bash(git push *)"]
+    "allow": [
+      "Bash(git push origin feature/*)",
+      "Bash(git worktree *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr merge *)"
+    ]
   }
 }
