@@ -12,6 +12,8 @@ const INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
 
 // 부팅은 페이지당 한 번뿐이다. 두 번째 호출부터는 같은 Promise 를 돌려준다.
 let booting = null;
+// 몇 번째 시도인지. 재시도할 때 import URL 을 달리하는 데 쓴다.
+let attempt = 0;
 
 /**
  * Pyodide 를 받아 온다. 여러 번 불러도 런타임은 하나다.
@@ -20,13 +22,38 @@ let booting = null;
  * 부르는 것보다 빠르다. 부팅과 병렬로 내려받기 때문이다.
  */
 export function getPyodide({ packages = [], stdout, stderr } = {}) {
-  if (booting) return booting;
+  if (booting) {
+    // 이미 부팅했으면 인자는 늦었다. 조용히 무시하면 ModuleNotFoundError 로만 드러나고
+    // 원인에서 먼 곳에서 터진다. 패키지는 뒤늦게라도 얹어 주고, 나머지는 알려 준다.
+    if (stdout || stderr) {
+      console.warn('getPyodide: 런타임이 이미 떠 있어 stdout/stderr 인자를 무시합니다.');
+    }
+    if (packages.length) {
+      return booting.then(async (pyodide) => {
+        await pyodide.loadPackage(packages);
+        return pyodide;
+      });
+    }
+    return booting;
+  }
+
+  const tries = attempt++;
 
   booting = (async () => {
     // 모듈 스크립트로 받는다. 314 부터 pyodide.asm.mjs 라 classic worker 는 못 쓴다.
-    const { loadPyodide } = await import(`${INDEX_URL}pyodide.mjs`);
+    //
+    // 재시도할 때는 URL 에 표를 하나 붙인다. 브라우저의 모듈 맵은 실패한 import 도
+    // 캐시해서, 같은 URL 로 다시 부르면 네트워크가 돌아와도 같은 에러만 돌아온다.
+    const url = tries === 0 ? `${INDEX_URL}pyodide.mjs` : `${INDEX_URL}pyodide.mjs?retry=${tries}`;
+    const { loadPyodide } = await import(url);
     return loadPyodide({ indexURL: INDEX_URL, packages, stdout, stderr });
   })();
+
+  // 실패한 부팅은 캐시하지 않는다. 캐시해 두면 CDN 이 잠깐 끊긴 것만으로
+  // 새로고침 전까지 페이지가 죽고, "다시 시도" 버튼을 달아도 같은 에러만 돌아온다.
+  booting.catch(() => {
+    booting = null;
+  });
 
   return booting;
 }
@@ -38,7 +65,8 @@ export function getPyodide({ packages = [], stdout, stderr } = {}) {
 export async function loadPackages(pyodide, packages, onProgress) {
   await pyodide.loadPackage(packages, {
     messageCallback: onProgress,
-    errorCallback: onProgress,
+    // 실패를 진행 상황과 같은 모양으로 찍으면 아무도 못 알아본다.
+    errorCallback: onProgress && ((message) => onProgress(`오류: ${message}`)),
   });
 }
 
@@ -55,7 +83,8 @@ export function showLoading(target, message = 'Python 런타임을 받는 중입
   box.setAttribute('role', 'status');
   box.textContent = `${message}…`;
 
-  target.replaceChildren(box);
+  // 대상을 비우지 않고 덧붙인다. 비우면 같은 자리에 있던 버튼이나 중간 출력이 사라진다.
+  target.append(box);
   injectStyle();
 
   const started = performance.now();
@@ -80,7 +109,9 @@ export function renderPythonError(target, error) {
   box.setAttribute('role', 'alert');
   box.textContent = error?.message ?? String(error);
 
-  target.replaceChildren(box);
+  // 여기서 대상을 비우면 예외 직전까지 파이썬이 찍은 것이 함께 지워진다.
+  // 어디까지 진행됐는지가 트레이스백만큼 중요하다.
+  target.append(box);
   injectStyle();
   return box;
 }
