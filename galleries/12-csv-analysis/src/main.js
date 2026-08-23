@@ -196,7 +196,14 @@ leakButton.addEventListener('click', async () => {
   const before = requests().length;
   // 응답을 읽지 않는 fetch 다. 보내는 쪽은 응답이 필요 없으니 유출 코드의 기본형이기도 하다.
   // 같은 출처의 아무 주소나 두드린다. 서버가 뭘 돌려주든 상관없다.
-  fetch(`${location.pathname}?몰래=${encodeURIComponent('보낸 것처럼')}`, { method: 'POST' });
+  // 막히든 말든 이 버튼의 요점은 "센 숫자가 안 늘었다" 이므로 실패를 화면에서 삼킨다.
+  // 안 삼키면 오프라인이나 차단 확장에서 처리되지 않은 거부가 콘솔로 샌다.
+  let blocked = null;
+  fetch(`${location.pathname}?몰래=${encodeURIComponent('보낸 것처럼')}`, { method: 'POST' }).catch(
+    (error) => {
+      blocked = error.message;
+    },
+  );
   await new Promise((resolve) => setTimeout(resolve, 1200));
   const after = requests().length;
   leakResult.textContent = [
@@ -204,7 +211,8 @@ leakButton.addEventListener('click', async () => {
     `Resource Timing 이 센 요청: ${before}건 → ${after}건`,
     after === before
       ? '늘지 않았습니다. 위의 표는 이 요청을 못 봅니다.'
-      : '이번에는 잡혔습니다. 브라우저나 상황에 따라 다를 수 있습니다.',
+      : '이번에는 잡혔습니다. 브라우저나 상황에 따라 다릅니다.',
+    blocked ? `(요청 자체는 막혔습니다: ${blocked})` : '',
     '',
     '개발자 도구의 네트워크 탭을 열어 두고 다시 눌러 보세요. 거기에는 찍힙니다.',
   ].join('\n');
