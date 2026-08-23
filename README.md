@@ -65,6 +65,8 @@ mise run site:serve   # 만든 사이트를 띄운다
 
 `galleries/_shared/pyodide.js` 의 `PYODIDE_VERSION` 한 곳에서 관리한다. 예제는 이 모듈을 거쳐 런타임을 받으므로 버전을 올릴 때 고칠 곳은 그 한 줄이다.
 
+런타임을 저장소에 넣지 않고 CDN 에서 받는다. 넣으면 자립하고 오프라인에서도 도는데, 코어만 십수 MB 이고 numpy 나 pandas 까지 넣으면 수백 MB 가 된다. GitHub Pages 의 권장 용량을 넘고 저장소를 받는 것도 느려진다. 대신 URL 에 버전을 고정해 두었다. 자립이 꼭 필요하면 [Pyodide 배포 문서](https://pyodide.org/en/stable/usage/downloading-and-deploying.html)를 보고 직접 호스팅하면 된다.
+
 Pyodide 는 버전 체계를 바꿨다. `0.29.x` 다음이 `314.0.0` 이고, 앞 세 자리가 번들된 파이썬 버전(3.14)을 뜻한다. 웹에 널린 자료는 대부분 `0.26.x` 기준이라 그대로 베끼면 지금은 안 되는 것이 섞인다. 무엇이 달라졌는지는 각 예제의 "막히는 지점" 에 적어 두었다.
 
 패키지 목록을 최신으로 다시 만들려면 이렇게 한다.
