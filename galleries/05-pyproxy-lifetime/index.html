@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>05. PyProxy 의 수명 — Pyodide 갤러리</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">← 갤러리 목록</a>
+      <h1>05. PyProxy 의 수명</h1>
+      <p class="lede">
+        "다 쓰면 놓아 줘야 한다" 는 규칙을 네 번 지켜 왔다. 안 지키면 실제로 무슨 일이 나는지 숫자로
+        본다.
+      </p>
+
+      <pre class="output" id="boot">준비 중입니다</pre>
+
+      <section>
+        <h2>손잡이 하나가 참조 하나다</h2>
+        <p class="hint">
+          파이썬 전역에 <code>TARGET</code> 이라는 dict 를 하나 둔다. 그것을 가리키는 프록시를
+          만들면 파이썬 쪽 참조 수가 그만큼 올라간다.
+        </p>
+        <div class="controls">
+          <button id="leak" type="button" disabled>손잡이 100개 만들고 안 놓기</button>
+          <button id="release" type="button" disabled>모아 둔 것 전부 놓기</button>
+        </div>
+        <table class="metrics" id="ref-result" role="status">
+          <thead>
+            <tr>
+              <th scope="col">항목</th>
+              <th scope="col">값</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>안 놓으면 힙이 자란다</h2>
+        <p class="hint">
+          큰 바이트 덩이를 잡는 손잡이를 만들고 놓지 않는다. WebAssembly 힙이 실제로 커지는 것을
+          본다.
+        </p>
+        <div class="controls">
+          <button id="alloc" type="button" disabled>10 MiB 잡고 안 놓기</button>
+          <button id="free" type="button" disabled>잡은 것 놓기</button>
+        </div>
+        <table class="metrics" id="heap-result" role="status">
+          <thead>
+            <tr>
+              <th scope="col">항목</th>
+              <th scope="col">값</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>놓는 세 가지 방법</h2>
+        <div class="controls">
+          <button id="ways" type="button" disabled>세 가지를 나란히 돌려 보기</button>
+        </div>
+        <table class="metrics wide" id="ways-result" role="status">
+          <thead>
+            <tr>
+              <th scope="col">방법</th>
+              <th scope="col">이 브라우저에서</th>
+              <th scope="col">참조 수가 돌아왔나</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>놓은 손잡이를 다시 쓰면</h2>
+        <div class="controls">
+          <button id="reuse" type="button" disabled>놓고 나서 다시 써 보기</button>
+        </div>
+        <pre class="output" id="reuse-result" role="status"></pre>
+      </section>
+
+      <p><a href="../04-type-conversions/">← 이전: 04. 값이 오가는 규칙</a></p>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

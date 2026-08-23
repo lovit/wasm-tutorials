@@ -1,0 +1,12 @@
+/* 값이 자주 바뀌는 표다. 숫자가 세로로 읽히게 폭을 잡아 둔다. */
+.metrics td {
+  min-width: 12rem;
+}
+
+.metrics.wide td {
+  min-width: 0;
+}
+
+#reuse-result {
+  white-space: pre-wrap;
+}
