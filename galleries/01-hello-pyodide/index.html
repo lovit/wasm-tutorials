@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>01. 브라우저에서 파이썬 띄우기 — Pyodide 갤러리</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">← 갤러리 목록</a>
+      <h1>01. 브라우저에서 파이썬 띄우기</h1>
+      <p class="lede">
+        서버도 설치도 없이 이 탭 안에서 CPython 이 돕니다. 대신 처음 한 번 런타임을 내려받습니다.
+        얼마나 받는지, 얼마나 걸리는지 이 페이지가 직접 잽니다.
+      </p>
+
+      <section>
+        <h2>파이썬이 말하는 자기 버전</h2>
+        <pre class="output" id="version">준비 중입니다</pre>
+      </section>
+
+      <section>
+        <h2>이번 방문에 든 비용</h2>
+        <table class="metrics" id="cost">
+          <thead>
+            <tr>
+              <th scope="col">항목</th>
+              <th scope="col">값</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p class="note" id="cache-note">
+          이 숫자는 지금 이 브라우저에서 잰 값입니다. 새로고침하면 달라집니다. 두 번째부터는
+          런타임이 캐시에서 오기 때문입니다.
+        </p>
+      </section>
+
+      <section>
+        <h2>런타임은 페이지당 하나입니다</h2>
+        <div class="controls">
+          <button id="again" type="button" disabled>한 번 더 받아 보기</button>
+          <span class="hint" id="again-result" role="status"></span>
+        </div>
+      </section>
+
+      <section>
+        <h2>직접 돌려 보기</h2>
+        <label for="code">파이썬 한 줄</label>
+        <textarea id="code" class="code" rows="4" spellcheck="false" aria-describedby="run-hint">
+sum(n * n for n in range(1, 11))</textarea>
+        <div class="controls">
+          <button id="run" type="button" disabled>실행</button>
+          <span class="hint" id="run-hint">마지막 문장이 표현식이면 그 값이 넘어옵니다</span>
+        </div>
+        <pre class="output" id="result" role="status"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
