@@ -7,5 +7,6 @@
   "06-dom-from-python": 9,
   "07-callbacks-both-ways": 10,
   "08-file-system": 9,
-  "09-packages-micropip": 5
+  "09-packages-micropip": 5,
+  "10-http-and-cors": 4
 }

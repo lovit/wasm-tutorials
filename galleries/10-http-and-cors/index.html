@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>10. 왜 requests 가 안 되는가 — Pyodide 갤러리</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">← 갤러리 목록</a>
+      <h1>10. 왜 requests 가 안 되는가</h1>
+      <p class="lede">
+        기초편 마지막이다. 브라우저 안의 파이썬으로 무언가 만들려 할 때 가장 먼저 부딪히는 벽이
+        네트워크다. 무엇이 어디서 막히는지 층으로 갈라 본다.
+      </p>
+
+      <pre class="output" id="boot">준비 중입니다</pre>
+
+      <section>
+        <h2>같은 주소를 다섯 가지 길로</h2>
+        <fieldset id="targets">
+          <legend>어디로 보낼까</legend>
+        </fieldset>
+        <div class="controls">
+          <label for="url">주소</label>
+          <input id="url" type="text" disabled />
+          <button id="probe" type="button" disabled>다섯 가지로 두드려 보기</button>
+        </div>
+        <pre class="output" id="probe-result" role="status"></pre>
+      </section>
+
+      <section>
+        <h2>어디서 막히나</h2>
+        <div class="controls">
+          <button id="layers" type="button" disabled>층으로 갈라 보기</button>
+        </div>
+        <pre class="output" id="layers-result" role="status"></pre>
+      </section>
+
+      <section>
+        <h2>네트워크 말고 없는 것들</h2>
+        <div class="controls">
+          <button id="missing" type="button" disabled>확인해 보기</button>
+        </div>
+        <pre class="output" id="missing-result" role="status"></pre>
+      </section>
+
+      <p><a href="../09-packages-micropip/">← 이전: 09. PyPI 에서 설치하기</a></p>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

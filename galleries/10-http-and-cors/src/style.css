@@ -1,0 +1,45 @@
+#targets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+#targets legend {
+  padding: 0 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+#targets span {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+#url {
+  flex: 1;
+  min-width: 18rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.controls label {
+  margin: 0;
+}
+
+/* 결과가 표처럼 줄 맞춰 나온다. 접히면 읽기 어려우니 가로로 스크롤한다. */
+pre.output {
+  overflow-x: auto;
+}
+
+pre.output:empty {
+  display: none;
+}

@@ -20,6 +20,8 @@ mise run serve    # http://localhost:4173/galleries/
 
 하나씩 추가되는 대로 여기에 목차가 붙는다. 진행 상황은 [이슈 목록](https://github.com/lovit/wasm-tutorials/issues?q=is%3Aissue+label%3Agallery)에서 볼 수 있다.
 
+기초편 열 개가 끝났다. 순서대로 따라가면 런타임을 띄우는 것부터 무엇이 어디서 막히는지까지 한 바퀴를 돈다.
+
 ### 기초편
 
 | # | 예제 | 배우는 것 |
@@ -33,7 +35,7 @@ mise run serve    # http://localhost:4173/galleries/
 | 07 | [`07-callbacks-both-ways`](./07-callbacks-both-ways/) | 함수를 양쪽으로 넘기기, 빌린 손잡이와 넘겨준 손잡이 |
 | 08 | [`08-file-system`](./08-file-system/) | 가짜 파일시스템, 파일 올리고 내려받기, 새로고침해도 남기기 |
 | 09 | [`09-packages-micropip`](./09-packages-micropip/) | PyPI 에서 바로 설치하기, 되는 것과 안 되는 것 가리기 |
-| 10 | `10-http-and-cors` | 왜 `requests` 가 그냥은 안 되는가 |
+| 10 | [`10-http-and-cors`](./10-http-and-cors/) | 무엇이 어디서 막히는가. 소켓, TLS, CORS |
 
 ### 응용편
 
