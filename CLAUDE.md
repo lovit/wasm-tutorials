@@ -45,23 +45,15 @@ Pyodide 를 예제로 익히는 학습용 저장소. `galleries/` 아래에 예�
 
 ## 도구
 
-| 도구         | 용도                             | 명령                              |
-| ------------ | -------------------------------- | --------------------------------- |
-| mise         | node/python 버전, 환경변수, task | `mise install`, `mise run <task>` |
-| prek         | 커밋 전 자동 검사                | `prek run --all-files`            |
-| prettier     | 포맷 + 하드랩 제거               | `mise run fmt`                    |
-| markdownlint | 마크다운 린트                    | `mise run lint:md`                |
-| ruff         | 예제 파이썬 코드 검사            | `mise run lint:py`                |
+무엇을 쓰는지는 [README 의 도구 표](README.md#도구)에 있다. 여기에는 작업하며 실제로 부르는 것만 적는다.
 
 ```bash
-mise install            # node, python 설치
-mise run setup          # prek 훅 등록
 mise run serve          # 정적 서버 (기본 http://localhost:4173)
 mise run check          # 갤러리 구조 + 하드랩 + 코드 조각 (CI 와 동일)
-mise run site           # 발행용 사이트를 _site/ 에 만든다
-mise run site:serve     # 만든 사이트를 띄워 확인한다
-mise run docs:packages  # 락파일에서 docs/packages.md 를 다시 만든다
+prek run --all-files    # 커밋 전 검사 전부
 ```
+
+나머지는 `mise tasks` 로 본다. 목록을 여기에 베껴 두면 태스크를 늘릴 때마다 두 곳을 고쳐야 하고, 한쪽만 고치면 없는 명령을 부르게 된다.
 
 `main` 에 푸시하면 `.github/workflows/pages.yml` 이 사이트를 <https://lovit.github.io/wasm-tutorials/> 로 배포한다. 예제 파일은 손대지 않고 그대로 옮기므로, 로컬에서 동작하면 사이트에서도 동작한다.
 
