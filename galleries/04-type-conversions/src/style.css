@@ -1,0 +1,50 @@
+/* 예시 버튼이 많다. 줄바꿈해서 흐르게 두고 글자를 조금 줄인다. */
+#py-samples button {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+}
+
+#opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 1rem 0;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+#opts legend {
+  padding: 0 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* base.css 의 label 은 블록이다. 옵션은 한 줄에 놓는다. */
+label.inline {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0;
+  color: inherit;
+  font-size: 0.9rem;
+}
+
+#depth-out {
+  min-width: 6rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 값이 길다. 표가 화면을 넘지 않게 넘치는 것은 잘라 보여 준다. */
+.metrics td {
+  max-width: 34rem;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.metrics.wide th[scope='row'] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
