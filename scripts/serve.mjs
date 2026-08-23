@@ -114,11 +114,17 @@ a{color:#0b57d0;text-decoration:none}a:hover{text-decoration:underline}li{margin
 <h1>${title}</h1><ul>${items}</ul>`;
 }
 
+/** 오류 응답도 같은 공통 헤더를 쓴다. 한 응답만 격리가 풀리는 일이 없게. */
+function fail(res, status, body) {
+  res.writeHead(status, { ...commonHeaders(), 'content-type': MIME['.html'] }).end(body);
+}
+
 const server = createServer(async (req, res) => {
   try {
+    const urlPath = (req.url ?? '/').split('?')[0];
     const target = resolveInsideRoot(req.url ?? '/');
     if (target === null) {
-      res.writeHead(403).end('Forbidden');
+      fail(res, 403, '<h1>403</h1>');
       return;
     }
 
@@ -126,13 +132,20 @@ const server = createServer(async (req, res) => {
     let info = await stat(target);
 
     if (!(await insideRootAfterSymlinks(target))) {
-      res.writeHead(403).end('Forbidden');
+      fail(res, 403, '<h1>403</h1>');
       return;
     }
 
     let filePath = target;
 
     if (info.isDirectory()) {
+      // 끝의 슬래시가 없으면 상대 경로가 한 단계 위에서 풀린다.
+      // /galleries/01-hello 로 열면 src/main.js 가 /galleries/src/main.js 가 되어 전부 어긋난다.
+      if (!urlPath.endsWith('/')) {
+        res.writeHead(301, { ...commonHeaders(), location: `${urlPath}/` }).end();
+        return;
+      }
+
       const indexPath = join(target, 'index.html');
       const hasIndex = await stat(indexPath).then(
         () => true,
@@ -157,7 +170,10 @@ const server = createServer(async (req, res) => {
     });
     createReadStream(filePath).pipe(res);
   } catch {
-    if (!res.headersSent) res.writeHead(404, { 'content-type': MIME['.html'] });
+    if (!res.headersSent) {
+      fail(res, 404, '<h1>404</h1>');
+      return;
+    }
     res.end('<h1>404</h1>');
   }
 });
