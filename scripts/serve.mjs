@@ -49,10 +49,13 @@ const MIME = {
   '.map': 'application/json; charset=utf-8',
 };
 
-/** 모든 응답에 공통으로 붙는 헤더. 격리 모드일 때만 COOP/COEP 가 붙는다. */
+/** 모든 응답에 공통으로 붙는 헤더. COOP/COEP 는 격리 모드일 때만 붙는다. */
 function commonHeaders() {
-  if (!ISOLATED) return {};
+  // 같은 출처에서 나가는 .svg 는 활성 콘텐츠다. 타입을 추측해 실행하지 못하게 막는다.
+  const base = { 'x-content-type-options': 'nosniff' };
+  if (!ISOLATED) return base;
   return {
+    ...base,
     'cross-origin-opener-policy': 'same-origin',
     // credentialless 를 쓰면 CORP 헤더가 없는 CDN 자원도 받을 수 있다.
     'cross-origin-embedder-policy': 'credentialless',
@@ -61,7 +64,8 @@ function commonHeaders() {
 
 /** 경로에 점으로 시작하는 세그먼트가 있는지. .git, .env 를 막는다. */
 function hasDotSegment(urlPath) {
-  return urlPath.split('/').some((segment) => segment.startsWith('.') && segment !== '');
+  // 백슬래시도 나눈다. 윈도우에서는 path.join 이 그것도 구분자로 본다.
+  return urlPath.split(/[/\\]/).some((segment) => segment.startsWith('.') && segment !== '');
 }
 
 /**
@@ -154,6 +158,12 @@ const server = createServer(async (req, res) => {
       if (hasIndex) {
         filePath = indexPath;
         info = await stat(filePath);
+        // 검사한 것은 디렉터리였다. 실제로 내보낼 파일을 다시 봐야 한다.
+        // index.html 이 루트 밖을 가리키는 심링크면 여기서 걸러진다.
+        if (!(await insideRootAfterSymlinks(filePath))) {
+          fail(res, 403, '<h1>403</h1>');
+          return;
+        }
       } else {
         const html = await renderDirectory(target, req.url ?? '/');
         res.writeHead(200, { ...commonHeaders(), 'content-type': MIME['.html'] }).end(html);
