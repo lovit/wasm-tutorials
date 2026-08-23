@@ -56,7 +56,7 @@ export function ensureSupport({ isolated = false } = {}) {
   if (isolated && !isIsolated()) {
     showUnsupportedBanner(
       '이 페이지는 cross-origin isolation 상태가 아닙니다',
-      'SharedArrayBuffer 가 필요한 예제입니다. 로컬에서는 CROSS_ORIGIN_ISOLATED=1 mise run serve 로 띄우세요. 발행된 사이트에서는 service worker 가 헤더를 붙여 줍니다. 새로고침해도 이 배너가 계속 뜬다면 18번 예제의 설명을 보세요.',
+      'SharedArrayBuffer 가 필요한 예제입니다. 로컬에서는 CROSS_ORIGIN_ISOLATED=1 mise run serve 로 띄우면 됩니다. 왜 이 헤더가 필요한지와 정적 호스팅에서 어떻게 우회하는지는 18번 예제에서 다룹니다.',
     );
     return false;
   }
