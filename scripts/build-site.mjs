@@ -1,0 +1,404 @@
+#!/usr/bin/env node
+// GitHub Pages 로 올릴 정적 사이트를 _site/ 에 만든다.
+//
+//   mise run site          # 로컬에서 빌드
+//   mise run site:serve    # 빌드한 결과를 띄워 확인
+//
+// 저장소 구조는 그대로 두고 필요한 것만 모은다. 의존성은 쓰지 않는다.
+// 마크다운은 GitHub 의 렌더링 API 를 빌려 쓴다. CI 에서는 GITHUB_TOKEN 이 있으므로
+// 곧바로 되고, 토큰이 없으면 원문을 그대로 보여 주는 쪽으로 물러선다.
+
+import { execFileSync } from 'node:child_process';
+import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { dirname, join, normalize } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { escapeHtml } from './html.mjs';
+import { fenceBlocks, listSourceFiles, locate } from './snippets.mjs';
+
+const ROOT = normalize(join(fileURLToPath(import.meta.url), '..', '..'));
+const OUT = join(ROOT, '_site');
+const GALLERIES = join(ROOT, 'galleries');
+const DOCS = join(ROOT, 'docs');
+
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? '';
+const REPO = process.env.GITHUB_REPOSITORY ?? 'lovit/wasm-tutorials';
+
+const SITE_TITLE = 'Pyodide 갤러리';
+const SITE_DESCRIPTION = 'WebAssembly 위에서 도는 Python, Pyodide 를 예제로 익히는 학습용 저장소';
+
+const CODE_LANGUAGES = new Set(['js', 'css', 'html', 'python']);
+
+/**
+ * 소스 링크는 브랜치가 아니라 빌드 시점의 커밋을 가리킨다.
+ * main 을 가리키면 나중에 줄이 밀렸을 때 엉뚱한 곳을 짚게 된다.
+ */
+function currentCommit() {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  } catch {
+    return 'main';
+  }
+}
+
+const COMMIT = currentCommit();
+
+/** 커밋되지 않은 변경이 있으면 줄 번호가 링크와 어긋날 수 있다. 로컬 확인용 경고. */
+function workingTreeIsDirty() {
+  if (process.env.GITHUB_SHA) return false;
+  try {
+    return (
+      execFileSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' }).trim() !== ''
+    );
+  } catch {
+    return false;
+  }
+}
+
+function blobUrl(path, range = '') {
+  return `https://github.com/${REPO}/blob/${COMMIT}/${path}${range}`;
+}
+
+function treeUrl(path) {
+  return `https://github.com/${REPO}/tree/${COMMIT}/${path}`;
+}
+
+// ---------------------------------------------------------------- 마크다운
+
+/** GitHub 에 마크다운 렌더링을 맡긴다. 표와 코드 펜스를 정확히 처리해 준다. */
+async function renderMarkdown(markdown) {
+  if (!GITHUB_TOKEN) return null;
+
+  const response = await fetch('https://api.github.com/markdown', {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${GITHUB_TOKEN}`,
+      accept: 'application/vnd.github+json',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ text: markdown, mode: 'gfm', context: REPO }),
+  });
+
+  if (!response.ok) {
+    // 토큰까지 넣고 실패했다면 CI 다. 조용히 원문으로 물러서면 튜토리얼 전부가
+    // 스타일 없는 덩어리로 발행되는데 워크플로는 초록불이 된다.
+    throw new Error(
+      `마크다운 렌더링 실패 (${response.status}). 토큰이 있는데 실패했으므로 빌드를 멈춥니다.`,
+    );
+  }
+  return response.text();
+}
+
+/** 카드 요약처럼 한 줄짜리 텍스트에 쓰는 최소 변환. 인라인 코드와 강조만 처리한다. */
+function inlineMarkdown(text) {
+  return escapeHtml(text)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+}
+
+/** 문서끼리 거는 링크는 .md 로 적혀 있다. 발행본에서는 .html 을 가리켜야 한다. */
+function rewriteLinks(html) {
+  return html.replace(/(href=")([^"]+?)\.md(#[^"]*)?(")/g, (match, head, path, hash, tail) => {
+    if (/^https?:/.test(path)) return match;
+    // README 는 그 디렉터리의 index.html 로 지어진다. 링크도 같은 규칙을 따라야 한다.
+    const target = path.replace(/(^|\/)README$/, '$1index');
+    return `${head}${target}.html${hash ?? ''}${tail}`;
+  });
+}
+
+// ---------------------------------------------------------------- 페이지 틀
+
+function page({ title, body, depth = 0, wide = false }) {
+  const up = '../'.repeat(depth);
+  return `<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${title}</title>
+    <link rel="stylesheet" href="${up}site.css" />
+  </head>
+  <body class="${wide ? 'wide' : ''}">
+    <header class="site-header">
+      <a class="site-home" href="${up}index.html">${SITE_TITLE}</a>
+      <nav>
+        <a href="${up}galleries/index.html">예제</a>
+        <a href="${up}docs/tutorials/index.html">원리</a>
+        <a href="${up}docs/packages.html">패키지</a>
+        <a href="${up}docs/glossary.html">용어</a>
+      </nav>
+    </header>
+    <main>
+${body}
+    </main>
+    <footer class="site-footer">
+      <p>예제는 브라우저에서 그대로 돕니다. 서버도, 설치도 필요 없습니다. 다만 Pyodide 런타임을 처음 받을 때 6MB 남짓을 내려받습니다.</p>
+    </footer>
+  </body>
+</html>
+`;
+}
+
+/**
+ * 렌더링된 코드 블록 아래에 소스 링크를 붙인다.
+ *
+ * 마크다운의 펜스 순서와 렌더링 결과의 블록 순서가 같다는 점을 이용한다.
+ * 소스에서 찾지 못한 조각에는 아무것도 붙이지 않는다. 설명을 위해 줄여 쓴 조각까지
+ * 억지로 어딘가에 연결하면 오히려 헷갈린다.
+ */
+function attachSourceLinks(html, { blocks, files, dirPath }) {
+  const containers = /<div class="highlight[\s\S]*?<\/pre><\/div>|<pre[^>]*>[\s\S]*?<\/pre>/g;
+  let index = 0;
+  let linked = 0;
+
+  const result = html.replace(containers, (match) => {
+    const block = blocks[index];
+    index += 1;
+    if (!block || !CODE_LANGUAGES.has(block.lang)) return match;
+
+    const found = locate(files, block.code);
+    if (!found) return match;
+
+    linked += 1;
+    const range = found.exact ? `#L${found.start}-L${found.end}` : `#L${found.start}`;
+    const label = found.exact
+      ? `${found.file}:${found.start}-${found.end}`
+      : `${found.file}:${found.start}`;
+    const note = found.exact ? '소스 보기' : '소스에서 이 부분';
+    const url = blobUrl(`${dirPath}/${found.file}`, range);
+
+    return `${match}\n<p class="source-link"><a href="${url}" target="_blank" rel="noreferrer">${note} · <code>${label}</code></a></p>`;
+  });
+
+  return { html: result, linked };
+}
+
+/** 튜토리얼 끝에 붙는 소스 파일 목록. 링크가 안 붙은 조각도 여기서 찾아갈 수 있다. */
+function sourceListSection(files, dirPath) {
+  const items = files
+    .map((file) => {
+      const url = blobUrl(`${dirPath}/${file.rel}`);
+      return `        <li><a href="${url}" target="_blank" rel="noreferrer"><code>${file.rel}</code></a> <span>${file.lines.length}줄</span></li>`;
+    })
+    .join('\n');
+
+  return `      <section class="source-list">
+        <h2>이 예제의 소스</h2>
+        <p>줄 번호까지 고정된 링크입니다. 지금 보고 있는 사이트를 만든 커밋을 가리킵니다.</p>
+        <ul>
+${items}
+        </ul>
+        <p><a href="${treeUrl(dirPath)}" target="_blank" rel="noreferrer">폴더 전체 보기</a></p>
+      </section>
+`;
+}
+
+// ---------------------------------------------------------------- 갤러리 훑기
+
+/** README 의 h1 과 첫 문단을 뽑아 목록에 쓴다. 두 곳에 같은 내용을 적지 않기 위해서다. */
+function summarize(markdown) {
+  const lines = markdown.split('\n');
+  const titleLine = lines.find((line) => line.startsWith('# ')) ?? '# 제목 없음';
+  const title = titleLine.slice(2).trim();
+
+  const afterTitle = lines.slice(lines.indexOf(titleLine) + 1);
+  const summary = afterTitle.find(
+    (line) => line.trim() !== '' && !line.startsWith('!') && !line.startsWith('#'),
+  );
+
+  return { title, summary: (summary ?? '').trim() };
+}
+
+async function collectGalleries() {
+  const entries = await readdir(GALLERIES, { withFileTypes: true });
+  const names = entries
+    .filter(
+      (entry) => entry.isDirectory() && !entry.name.startsWith('_') && !entry.name.startsWith('.'),
+    )
+    .map((entry) => entry.name)
+    .sort();
+
+  const galleries = [];
+  for (const name of names) {
+    const markdown = await readFile(join(GALLERIES, name, 'README.md'), 'utf8');
+    const hasShot = await readFile(join(GALLERIES, name, 'screenshot.png')).then(
+      () => true,
+      () => false,
+    );
+    galleries.push({ name, markdown, hasShot, ...summarize(markdown) });
+  }
+  return galleries;
+}
+
+// ---------------------------------------------------------------- 만들기
+
+async function writePage(relativePath, html) {
+  const target = join(OUT, relativePath);
+  await mkdir(dirname(target), { recursive: true });
+  await writeFile(target, html);
+}
+
+async function buildMarkdownPage(
+  markdown,
+  relativePath,
+  title,
+  { extraTop = '', source = null } = {},
+) {
+  const rendered = await renderMarkdown(markdown);
+  let inner = rendered ? rewriteLinks(rendered) : `<pre class="raw">${escapeHtml(markdown)}</pre>`;
+  let linked = 0;
+
+  if (rendered && source) {
+    const attached = attachSourceLinks(inner, source);
+    inner = attached.html;
+    linked = attached.linked;
+  }
+
+  const tail = source ? sourceListSection(source.files, source.dirPath) : '';
+  const depth = relativePath.split('/').length - 1;
+  const body = `${extraTop}      <article class="markdown">${inner}</article>\n${tail}`;
+  await writePage(relativePath, page({ title, body, depth }));
+  return linked;
+}
+
+async function buildLanding(galleries) {
+  const cards = galleries
+    .map((gallery) => {
+      const thumb = gallery.hasShot
+        ? `<img src="galleries/${gallery.name}/screenshot.png" alt="" loading="lazy" />`
+        : '';
+      return `        <li class="card">
+          <a class="card-shot" href="galleries/${gallery.name}/">${thumb}</a>
+          <div class="card-body">
+            <h3><a href="galleries/${gallery.name}/">${escapeHtml(gallery.title)}</a></h3>
+            <p>${inlineMarkdown(gallery.summary)}</p>
+            <p class="card-links">
+              <a href="galleries/${gallery.name}/">데모 열기</a>
+              <a href="galleries/${gallery.name}/readme.html">튜토리얼 읽기</a>
+              <a href="${treeUrl(`galleries/${gallery.name}`)}" target="_blank" rel="noreferrer">소스</a>
+            </p>
+          </div>
+        </li>`;
+    })
+    .join('\n');
+
+  const body = `      <h1>${SITE_TITLE}</h1>
+      <p class="lede">${SITE_DESCRIPTION}. 번호 순서대로 따라가면 앞 예제에서 배운 것을 뒤 예제가 다시 씁니다.</p>
+      <p class="lede-note">예제는 최신 브라우저에서 그대로 돕니다. 설치할 것은 없고, 처음 한 번 Pyodide 런타임 6MB 남짓을 내려받습니다. 그 뒤로는 브라우저 캐시에서 옵니다.</p>
+
+      <h2>원리부터 읽고 싶다면</h2>
+      <p>예제는 직접 해 보는 쪽이고, <a href="docs/tutorials/index.html">원리 문서</a>는 왜 그렇게 되는지 읽는 쪽입니다. Pyodide 가 미리 빌드해 둔 패키지 목록은 <a href="docs/packages.html">패키지</a>에 있습니다.</p>
+
+      <h2>예제</h2>
+      <ul class="cards">
+${cards}
+      </ul>
+`;
+  await writePage('index.html', page({ title: SITE_TITLE, body, wide: true }));
+}
+
+async function buildGalleryIndex(galleries) {
+  const markdown = await readFile(join(GALLERIES, 'README.md'), 'utf8');
+  const rendered = await renderMarkdown(markdown);
+  const body = rendered
+    ? `      <article class="markdown">${rewriteLinks(rendered)}</article>`
+    : `      <article class="markdown"><pre class="raw">${escapeHtml(markdown)}</pre></article>`;
+
+  const links = galleries
+    .map(
+      (gallery) =>
+        `        <li><a href="${gallery.name}/">${gallery.title}</a> · <a href="${gallery.name}/readme.html">튜토리얼</a></li>`,
+    )
+    .join('\n');
+
+  await writePage(
+    'galleries/index.html',
+    page({
+      title: `예제 목록 — ${SITE_TITLE}`,
+      depth: 1,
+      body: `${body}\n      <h2>바로 가기</h2>\n      <ul class="plain">\n${links}\n      </ul>\n`,
+    }),
+  );
+}
+
+async function main() {
+  await rm(OUT, { recursive: true, force: true });
+  await mkdir(OUT, { recursive: true });
+
+  const galleries = await collectGalleries();
+
+  // 예제는 있는 그대로 복사한다. 사이트에서도 로컬에서와 똑같이 돌아야 한다.
+  await cp(GALLERIES, join(OUT, 'galleries'), { recursive: true });
+  await cp(DOCS, join(OUT, 'docs'), { recursive: true });
+  await cp(join(ROOT, 'site', 'site.css'), join(OUT, 'site.css'));
+  // Actions 로 발행하면 Jekyll 을 거치지 않지만, 실수로 브랜치 발행으로 돌아가도 안전하도록 둔다.
+  await writeFile(join(OUT, '.nojekyll'), '');
+
+  await buildLanding(galleries);
+  await buildGalleryIndex(galleries);
+
+  let totalBlocks = 0;
+  let totalLinked = 0;
+
+  for (const gallery of galleries) {
+    const dirPath = `galleries/${gallery.name}`;
+    const files = await listSourceFiles(join(GALLERIES, gallery.name));
+    const blocks = fenceBlocks(gallery.markdown);
+    const top = `      <p class="crumb"><a href="./">이 예제 데모 열기</a></p>\n`;
+
+    totalBlocks += blocks.filter((block) => CODE_LANGUAGES.has(block.lang)).length;
+    totalLinked += await buildMarkdownPage(
+      gallery.markdown,
+      `${dirPath}/readme.html`,
+      `${gallery.title} — ${SITE_TITLE}`,
+      { extraTop: top, source: { blocks, files, dirPath } },
+    );
+  }
+
+  // docs/ 는 tutorials/ 같은 하위 디렉터리를 갖는다. 재귀로 훑는다.
+  for (const rel of await listMarkdown(DOCS)) {
+    const markdown = await readFile(join(DOCS, rel), 'utf8');
+    const { title } = summarize(markdown);
+    // README 는 그 디렉터리의 첫 페이지다. galleries/README.md 를 다루는 방식과 맞춘다.
+    const out = rel.replace(/README\.md$/, 'index.md').replace(/\.md$/, '.html');
+    await buildMarkdownPage(markdown, `docs/${out}`, `${title} — ${SITE_TITLE}`);
+  }
+
+  const built = await countFiles(OUT);
+  console.log(`_site/ 생성 완료 — 예제 ${galleries.length}개, 파일 ${built}개`);
+  console.log(
+    `소스 링크: 코드 블록 ${totalBlocks}개 중 ${totalLinked}개 (커밋 ${COMMIT.slice(0, 7)})`,
+  );
+  console.log(
+    GITHUB_TOKEN ? '마크다운: GitHub 렌더링 사용' : '마크다운: 토큰이 없어 원문으로 출력',
+  );
+  if (workingTreeIsDirty()) {
+    console.log('');
+    console.log(
+      '경고: 커밋되지 않은 변경이 있습니다. 소스 링크는 HEAD 를 가리키므로 줄 번호가 어긋날 수 있습니다.',
+    );
+  }
+}
+
+/** docs/ 아래의 .md 를 재귀로 모은다. 반환값은 docs/ 기준 상대경로다. */
+async function listMarkdown(dir, prefix = '') {
+  const found = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) found.push(...(await listMarkdown(join(dir, entry.name), rel)));
+    else if (entry.name.endsWith('.md')) found.push(rel);
+  }
+  return found.sort();
+}
+
+async function countFiles(dir) {
+  let count = 0;
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) count += await countFiles(join(dir, entry.name));
+    else count += 1;
+  }
+  return count;
+}
+
+await main();
