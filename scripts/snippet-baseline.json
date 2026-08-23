@@ -1,4 +1,5 @@
 {
   "01-hello-pyodide": 10,
-  "02-loading-progress": 7
+  "02-loading-progress": 7,
+  "03-stdout-and-errors": 6
 }
