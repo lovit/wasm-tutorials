@@ -427,8 +427,8 @@ await micropip.install("plotly")
 | 파일 이름 | 뜻 | Pyodide 에서 |
 | --- | --- | --- |
 | `foo-1.0-py3-none-any.whl` | 순수 파이썬 | `micropip` 으로 설치된다 |
-| `foo-1.0-cp314-cp314-manylinux_x86_64.whl` | 리눅스용 네이티브 확장 | 안 된다. 아키텍처가 다르다 |
-| `foo-1.0-cp314-cp314-pyodide_2026_0_wasm32.whl` | Pyodide 용으로 빌드된 것 | 된다 |
+| `foo-1.0-cp314-cp314-manylinux_2_17_x86_64.whl` | 리눅스용 네이티브 확장 | 안 된다. 아키텍처가 다르다 |
+| `foo-1.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl` | Pyodide 용으로 빌드된 것 | 된다 |
 
 세 번째 줄이 PEP 783 이 만든 변화다. 예전에는 Pyodide 팀이 패키지를 직접 빌드해 배포해야 했지만, 이제는 패키지를 만든 사람이 PyPI 에 Pyodide 용 wheel 을 직접 올릴 수 있다.
 

@@ -3,7 +3,7 @@
 //
 //   mise run docs:packages
 //
-// 손으로 적으면 다음 릴리스에 바로 낡는다. 356개를 눈으로 대조할 수도 없다.
+// 손으로 적으면 다음 릴리스에 바로 낡는다. 수백 개를 눈으로 대조할 수도 없다.
 // 결과는 커밋한다. 사이트 빌드가 네트워크에 매달리지 않게 하려는 것이다.
 
 import { readFile, writeFile } from 'node:fs/promises';
@@ -43,12 +43,21 @@ const GROUPS = [
   },
 ];
 
-/** _shared/pyodide.js 가 기준으로 삼는 버전을 읽는다. 두 곳에 적지 않으려고. */
-async function pyodideVersion() {
+/**
+ * 예제가 쓰는 버전과 CDN 주소를 그대로 읽어 온다.
+ *
+ * 여기 다시 적으면 CDN 을 옮길 때 한쪽만 고치게 되고, 표는 옛 CDN 을 예제는 새 CDN 을 본다.
+ * import 하지 않고 문자열로 읽는 것은 이 파일이 브라우저용 모듈이라 node 에서 부작용 없이
+ * 불러온다는 보장이 없어서다.
+ */
+async function loaderConfig() {
   const source = await readFile(LOADER, 'utf8');
-  const found = source.match(/PYODIDE_VERSION = '([^']+)'/);
-  if (!found) throw new Error('_shared/pyodide.js 에서 PYODIDE_VERSION 을 찾지 못했습니다');
-  return found[1];
+  const version = source.match(/PYODIDE_VERSION = '([^']+)'/)?.[1];
+  const host = source.match(/https:\/\/[^`'"]*?\/pyodide\//)?.[0];
+  if (!version || !host) {
+    throw new Error('_shared/pyodide.js 에서 버전과 CDN 주소를 찾지 못했습니다');
+  }
+  return { version, indexUrl: `${host}v${version}/full/` };
 }
 
 function mib(bytes) {
@@ -62,6 +71,8 @@ function mib(bytes) {
  * 표에 싣는 것만 재고 나머지는 건너뛴다. 356개를 다 재면 너무 오래 걸린다.
  */
 async function measure(baseUrl, fileName) {
+  // 파일 이름에 경로가 섞이면 CDN 의 엉뚱한 곳을 때린다.
+  if (!/^[A-Za-z0-9._+-]+\.whl$/.test(fileName ?? '')) return null;
   try {
     const response = await fetch(`${baseUrl}${fileName}`, { method: 'HEAD' });
     if (!response.ok) return null;
@@ -102,6 +113,19 @@ async function measureAll(baseUrl, entries, limit = 8) {
   return sizes;
 }
 
+// 원격에서 받은 값을 그대로 마크다운에 넣으면 표가 깨지거나 엉뚱한 링크가 된다.
+// 락파일이 이상하면 조용히 넣지 말고 멈추는 편이 맞다.
+const SAFE_NAME = /^[A-Za-z0-9._+-]+$/;
+
+function checkValues(packages) {
+  const odd = Object.entries(packages)
+    .filter(([name, entry]) => !SAFE_NAME.test(name) || !SAFE_NAME.test(entry.version ?? ''))
+    .map(([name]) => name);
+  if (odd.length) {
+    throw new Error(`락파일에 예상 밖의 이름이나 버전이 있습니다: ${odd.slice(0, 5).join(', ')}`);
+  }
+}
+
 function sizedRow(name, entry, size) {
   const deps = entry.depends?.length ?? 0;
   return `| \`${name}\` | ${entry.version} | ${mib(size)} | ${deps} |`;
@@ -121,12 +145,13 @@ function plainTable(rows) {
 }
 
 async function main() {
-  const version = await pyodideVersion();
-  const url = `https://cdn.jsdelivr.net/pyodide/v${version}/full/pyodide-lock.json`;
+  const { version, indexUrl } = await loaderConfig();
+  const url = `${indexUrl}pyodide-lock.json`;
 
   const response = await fetch(url);
   if (!response.ok) throw new Error(`락파일을 받지 못했습니다 (${response.status}): ${url}`);
   const lock = await response.json();
+  checkValues(lock.packages);
 
   // 이름은 소문자로 맞춰 찾는다. 락파일 키는 배포명 그대로라 대소문자가 섞여 있다.
   const byLower = new Map(Object.entries(lock.packages).map(([n, e]) => [n.toLowerCase(), [n, e]]));
@@ -151,9 +176,8 @@ async function main() {
   }
 
   const grouped = new Set(picked.flatMap(({ hits }) => hits.map(([name]) => name)));
-  const baseUrl = `https://cdn.jsdelivr.net/pyodide/v${version}/full/`;
   const sizes = await measureAll(
-    baseUrl,
+    indexUrl,
     picked.flatMap(({ hits }) => hits),
   );
 
@@ -169,6 +193,9 @@ async function main() {
   const total = all.length;
   const rest = all.filter(([name]) => !grouped.has(name));
 
+  // 태그를 손으로 적으면 다음 ABI 에서 틀린 채로 남는다. 락파일 값에서 만든다.
+  const abiTag = lock.info.abi_version ? `pyemscripten_${lock.info.abi_version}` : 'pyemscripten';
+
   const body = `# Pyodide 에 들어 있는 패키지
 
 Pyodide 가 미리 WebAssembly 로 빌드해 배포하는 패키지 목록이다. 이 목록에 있으면 \`micropip.install()\` 한 줄로 바로 쓸 수 있다. 없어도 순수 파이썬 패키지라면 PyPI 에서 받아 설치할 수 있다. 그 판별법은 아래에 있다.
@@ -182,7 +209,7 @@ Pyodide 가 미리 WebAssembly 로 빌드해 배포하는 패키지 목록이다
 | Pyodide | ${version} |
 | Python | ${lock.info.python} |
 | Emscripten | ${lock.info.platform} |
-| ABI 태그 | ${lock.info.abi_version ? `pyemscripten_${lock.info.abi_version}` : '—'} |
+| ABI 태그 | ${abiTag} |
 | 패키지 수 | ${total}개 |
 
 크기는 wheel 파일 자체의 크기다. wheel 은 이미 zip 이라 전송할 때 더 줄지 않는다. 그래서 표의 숫자가 곧 내려받는 양이다. 의존성 열은 그 패키지가 함께 끌고 오는 패키지 수다. \`scikit-learn\` 처럼 \`scipy\` 를 끌고 오는 것은 실제 부담이 표의 숫자보다 훨씬 크다.
@@ -212,8 +239,8 @@ await micropip.install("plotly")
 | 파일 이름 | 뜻 | Pyodide 에서 |
 | --- | --- | --- |
 | \`foo-1.0-py3-none-any.whl\` | 순수 파이썬 | \`micropip\` 으로 설치된다 |
-| \`foo-1.0-cp314-cp314-manylinux_x86_64.whl\` | 리눅스용 네이티브 확장 | 안 된다. 아키텍처가 다르다 |
-| \`foo-1.0-cp314-cp314-pyodide_2026_0_wasm32.whl\` | Pyodide 용으로 빌드된 것 | 된다 |
+| \`foo-1.0-cp314-cp314-manylinux_2_17_x86_64.whl\` | 리눅스용 네이티브 확장 | 안 된다. 아키텍처가 다르다 |
+| \`foo-1.0-cp314-cp314-${abiTag}_wasm32.whl\` | Pyodide 용으로 빌드된 것 | 된다 |
 
 세 번째 줄이 PEP 783 이 만든 변화다. 예전에는 Pyodide 팀이 패키지를 직접 빌드해 배포해야 했지만, 이제는 패키지를 만든 사람이 PyPI 에 Pyodide 용 wheel 을 직접 올릴 수 있다.
 
