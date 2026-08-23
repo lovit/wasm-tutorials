@@ -1,0 +1,20 @@
+/* 파일 고르기 칸이 컨트롤 줄에서 너무 넓어지지 않게 잡아 둔다. */
+input[type='file'] {
+  max-width: 18rem;
+  font-size: 0.9rem;
+}
+
+/* 요청이 0건이라는 것이 이 예제의 결론이다. 눈에 띄게 둔다. */
+.verdict {
+  font-weight: 600;
+}
+
+.verdict.clean {
+  color: #1a7f37;
+}
+
+@media (prefers-color-scheme: dark) {
+  .verdict.clean {
+    color: #3fb950;
+  }
+}
