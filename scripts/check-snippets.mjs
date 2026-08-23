@@ -13,12 +13,11 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fenceBlocks, listSourceFiles, locate } from './snippets.mjs';
+import { CODE_LANGUAGES, fenceBlocks, listSourceFiles, locate } from './snippets.mjs';
 
 const ROOT = normalize(join(fileURLToPath(import.meta.url), '..', '..'));
 const GALLERIES = join(ROOT, 'galleries');
 const BASELINE = join(ROOT, 'scripts', 'snippet-baseline.json');
-const CODE_LANGUAGES = new Set(['js', 'css', 'html', 'python']);
 const UPDATE = process.argv.includes('--update');
 
 /** 예제마다 링크가 붙은 수를 적어 둔 파일. 없으면 전부 0 으로 본다. */

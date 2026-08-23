@@ -8,15 +8,13 @@ import { join, relative } from 'node:path';
 
 const SOURCE_EXTENSIONS = /\.(js|mjs|css|html|svg|py|json)$/;
 
-export const LANGUAGE_BY_EXTENSION = {
-  '.js': 'js',
-  '.mjs': 'js',
-  '.css': 'css',
-  '.html': 'html',
-  '.svg': 'xml',
-  '.py': 'python',
-  '.json': 'json',
-};
+/**
+ * 소스에서 찾아 링크를 붙일 코드 펜스 언어.
+ *
+ * build-site.mjs 와 check-snippets.mjs 가 이걸 함께 쓴다. 두 곳에 복사해 두면
+ * 한쪽만 고쳤을 때 빌드와 검사가 다른 수를 세고, 기준치가 조용히 무의미해진다.
+ */
+export const CODE_LANGUAGES = new Set(['js', 'css', 'html', 'python']);
 
 /** 예제 디렉터리 안의 소스 파일을 모은다. */
 export async function listSourceFiles(dir) {

@@ -9,11 +9,11 @@
 // 곧바로 되고, 토큰이 없으면 원문을 그대로 보여 주는 쪽으로 물러선다.
 
 import { execFileSync } from 'node:child_process';
-import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, normalize } from 'node:path';
+import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { dirname, join, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { escapeHtml } from './html.mjs';
-import { fenceBlocks, listSourceFiles, locate } from './snippets.mjs';
+import { CODE_LANGUAGES, fenceBlocks, listSourceFiles, locate } from './snippets.mjs';
 
 const ROOT = normalize(join(fileURLToPath(import.meta.url), '..', '..'));
 const OUT = join(ROOT, '_site');
@@ -25,8 +25,6 @@ const REPO = process.env.GITHUB_REPOSITORY ?? 'lovit/wasm-tutorials';
 
 const SITE_TITLE = 'Pyodide 갤러리';
 const SITE_DESCRIPTION = 'WebAssembly 위에서 도는 Python, Pyodide 를 예제로 익히는 학습용 저장소';
-
-const CODE_LANGUAGES = new Set(['js', 'css', 'html', 'python']);
 
 /**
  * 소스 링크는 브랜치가 아니라 빌드 시점의 커밋을 가리킨다.
@@ -98,13 +96,35 @@ function inlineMarkdown(text) {
 }
 
 /** 문서끼리 거는 링크는 .md 로 적혀 있다. 발행본에서는 .html 을 가리켜야 한다. */
-function rewriteLinks(html) {
+/**
+ * 문서끼리 거는 링크는 .md 로 적혀 있다. 발행본에서는 .html 을 가리켜야 한다.
+ *
+ * fromDir 은 이 문서가 놓일 자리(사이트 기준 상대 디렉터리)다. 링크는 상대 경로로
+ * 적혀 있어서, 어디를 가리키는지는 그 자리를 알아야 풀 수 있다.
+ */
+function rewriteLinks(html, fromDir) {
   return html.replace(/(href=")([^"]+?)\.md(#[^"]*)?(")/g, (match, head, path, hash, tail) => {
-    if (/^https?:/.test(path)) return match;
-    // README 는 그 디렉터리의 index.html 로 지어진다. 링크도 같은 규칙을 따라야 한다.
-    const target = path.replace(/(^|\/)README$/, '$1index');
-    return `${head}${target}.html${hash ?? ''}${tail}`;
+    if (/^https?:|^\//.test(path)) return match;
+    return `${head}${mdTarget(path, fromDir)}.html${hash ?? ''}${tail}`;
   });
+}
+
+/**
+ * .md 링크가 어떤 .html 을 가리켜야 하는지. 파일을 짓는 규칙과 같아야 한다.
+ *
+ * 예제 디렉터리 안의 README 만 readme.html 이다. 그 자리의 index.html 은 데모가
+ * 차지하고 있어서다. 나머지 README 는 그 디렉터리의 첫 페이지이므로 index.html 이 된다.
+ */
+function mdTarget(path, fromDir) {
+  if (!/(^|\/)README$/.test(path)) return path;
+
+  // 상대 경로를 사이트 기준으로 펴서 어느 디렉터리의 README 인지 본다.
+  const resolved = normalize(join(fromDir || '.', path))
+    .split(sep)
+    .join('/');
+  const isGalleryExample = /^galleries\/[^/]+\/README$/.test(resolved);
+
+  return path.replace(/README$/, isGalleryExample ? 'readme' : 'index');
 }
 
 // ---------------------------------------------------------------- 페이지 틀
@@ -222,7 +242,8 @@ async function collectGalleries() {
   const galleries = [];
   for (const name of names) {
     const markdown = await readFile(join(GALLERIES, name, 'README.md'), 'utf8');
-    const hasShot = await readFile(join(GALLERIES, name, 'screenshot.png')).then(
+    // 존재만 알면 된다. readFile 로 확인하면 PNG 를 통째로 메모리에 읽는다.
+    const hasShot = await stat(join(GALLERIES, name, 'screenshot.png')).then(
       () => true,
       () => false,
     );
@@ -246,7 +267,10 @@ async function buildMarkdownPage(
   { extraTop = '', source = null } = {},
 ) {
   const rendered = await renderMarkdown(markdown);
-  let inner = rendered ? rewriteLinks(rendered) : `<pre class="raw">${escapeHtml(markdown)}</pre>`;
+  const fromDir = dirname(relativePath);
+  let inner = rendered
+    ? rewriteLinks(rendered, fromDir)
+    : `<pre class="raw">${escapeHtml(markdown)}</pre>`;
   let linked = 0;
 
   if (rendered && source) {
