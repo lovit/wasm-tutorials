@@ -1,7 +1,7 @@
 """올린 CSV 를 pandas 로 훑는다. 파일은 브라우저 안의 가짜 파일시스템에서만 오간다."""
 
 import io
-import unicodedata
+import json
 
 import pandas as pd
 
@@ -19,8 +19,9 @@ SAMPLE = """이름,부서,나이,연봉,입사일
 
 def load_sample() -> str:
     """파일을 안 고른 사람도 해 볼 수 있게 한다. 이것도 네트워크를 타지 않는다."""
-    frame = pd.read_csv(io.StringIO(SAMPLE))
-    return describe(frame, "예제 데이터 (파일 없이 메모리에서 만든 것)")
+    return describe(
+        pd.read_csv(io.StringIO(SAMPLE)), "예제 데이터 (메모리에서 만든 것)"
+    )
 
 
 def load_uploaded(encoding: str) -> str:
@@ -29,52 +30,54 @@ def load_uploaded(encoding: str) -> str:
         frame = pd.read_csv(UPLOAD_PATH, encoding=encoding)
     except UnicodeDecodeError as exc:
         # 한글 윈도우에서 만든 CSV 는 대개 cp949 다. 이 오류가 그 신호다.
+        # from None 으로 pandas 안쪽 트레이스백을 끊는다. 안 끊으면 스무 줄이 먼저 나와서
+        # 정작 무엇을 해야 하는지 적은 줄이 맨 아래로 밀린다.
         raise ValueError(
             f"{encoding} 로 읽지 못했습니다. 인코딩을 바꿔 보세요.\n원문: {exc}"
-        ) from exc
+        ) from None
     return describe(frame, f"{UPLOAD_PATH} ({encoding})")
 
 
-def width(text: str) -> int:
-    """화면에서 차지하는 칸 수. 한글과 한자는 두 칸을 먹는다."""
-    return sum(2 if unicodedata.east_asian_width(ch) in "WF" else 1 for ch in text)
-
-
-def pad(text: str, columns: int) -> str:
-    """len() 으로 채우면 한글이 든 줄만 짧아진다. 칸 수로 채운다."""
-    return text + " " * max(0, columns - width(text))
-
-
 def describe(frame: pd.DataFrame, title: str) -> str:
-    lines = [title, "=" * width(title), ""]
-    lines.append(f"행 {len(frame):,}개, 열 {len(frame.columns)}개")
-    lines.append("")
+    """화면에 뿌릴 것을 JSON 으로 돌려준다.
 
-    lines.append("[열마다 무엇이 들어 있나]")
-    for name in frame.columns:
-        column = frame[name]
-        missing = int(column.isna().sum())
-        note = f"결측 {missing}개" if missing else "결측 없음"
-        lines.append(
-            f"  {pad(name, 14)} {column.dtype!s:<8} 고유값 {column.nunique():>4}개  {note}"
-        )
-    lines.append("")
+    열 목록을 문자열로 만들어 넘기지 않는다. 고정폭 글꼴에서 한글이 두 칸을 먹는다는
+    보장이 없어서(브라우저에서 재 보면 1.44 칸이다) 손으로 맞춘 칸이 어긋난다. 표는
+    자바스크립트가 <table> 로 그리게 두고 여기서는 값만 넘긴다.
+    """
+    columns = [
+        {
+            "name": str(name),
+            "dtype": str(frame[name].dtype),
+            "unique": int(frame[name].nunique()),
+            "missing": int(frame[name].isna().sum()),
+        }
+        for name in frame.columns
+    ]
 
     numeric = frame.select_dtypes("number")
-    if len(numeric.columns):
-        lines.append("[숫자 열 요약]")
-        # to_string 이 판다스의 표 서식을 그대로 준다. 직접 줄을 맞추지 않는다.
-        lines.append(numeric.describe().round(1).to_string())
-        lines.append("")
-
     text_columns = [c for c in frame.columns if frame[c].dtype in ("object", "str")]
-    if text_columns:
+    grouped = None
+    if text_columns and len(frame):
         # 고유값이 가장 적은 열을 고른다. 이름처럼 전부 다른 열을 세어 봐야 1 만 잔뜩 나온다.
-        grouped = min(text_columns, key=lambda c: frame[c].nunique())
-        lines.append(f"[{grouped} 별로 세기]")
-        lines.append(frame[grouped].value_counts().head(5).to_string())
-        lines.append("")
+        pick = min(text_columns, key=lambda c: frame[c].nunique())
+        if frame[pick].nunique() < len(frame):
+            grouped = {
+                "column": str(pick),
+                "text": frame[pick].value_counts().head(5).to_string(),
+            }
 
-    lines.append("[처음 세 줄]")
-    lines.append(frame.head(3).to_string())
-    return "\n".join(lines)
+    return json.dumps(
+        {
+            "title": title,
+            "rows": len(frame),
+            "columns": columns,
+            # pandas 가 만든 표는 터미널을 겨냥한 고정폭 서식이다. 그대로 <pre> 에 넣는다.
+            "numeric": numeric.describe().round(1).to_string()
+            if len(numeric.columns)
+            else None,
+            "grouped": grouped,
+            "head": frame.head(3).to_string() if len(frame) else None,
+        },
+        ensure_ascii=False,
+    )
