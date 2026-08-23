@@ -420,6 +420,8 @@ import micropip
 await micropip.install("plotly")
 ```
 
+`plotly` 와 `seaborn` 이 대표적이다. 둘 다 락파일에는 없지만 순수 파이썬이라 이렇게 설치된다.
+
 되는지 판별하는 법은 간단하다. PyPI 의 그 패키지 "Download files" 탭을 열어 `*-py3-none-any.whl` 이 있는지 본다.
 
 | 파일 이름 | 뜻 | Pyodide 에서 |

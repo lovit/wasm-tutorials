@@ -23,7 +23,7 @@ const GROUPS = [
   },
   {
     title: '그림 그리기',
-    names: ['matplotlib', 'plotly', 'bokeh', 'altair', 'seaborn', 'wordcloud'],
+    names: ['matplotlib', 'bokeh', 'altair', 'wordcloud'],
   },
   {
     title: '기계학습',
@@ -71,14 +71,34 @@ async function measure(baseUrl, fileName) {
   }
 }
 
-/** 동시에 너무 많이 물어보지 않는다. CDN 에 예의를 지킨다. */
+/**
+ * 동시에 너무 많이 물어보지 않는다. CDN 에 예의를 지킨다.
+ *
+ * 크기를 못 재면 표에 "—" 가 찍힌다. 몇 개쯤은 그럴 수 있지만 전부 그러면
+ * 네트워크가 죽은 것이므로, 문서를 잘못 덮어쓰기 전에 멈춰야 한다.
+ */
 async function measureAll(baseUrl, entries, limit = 8) {
   const sizes = new Map();
+  const failed = [];
+
   for (let i = 0; i < entries.length; i += limit) {
     const chunk = entries.slice(i, i + limit);
     const measured = await Promise.all(chunk.map(([, e]) => measure(baseUrl, e.file_name)));
-    chunk.forEach(([name], index) => sizes.set(name, measured[index]));
+    chunk.forEach(([name], index) => {
+      sizes.set(name, measured[index]);
+      if (measured[index] === null) failed.push(name);
+    });
   }
+
+  if (failed.length) {
+    console.warn(`크기를 재지 못한 패키지 ${failed.length}개: ${failed.join(', ')}`);
+  }
+  if (entries.length && failed.length > entries.length / 2) {
+    throw new Error(
+      `${entries.length}개 중 ${failed.length}개의 크기를 재지 못했습니다. 크기 열이 비어 있는 문서를 만들지 않고 멈춥니다.`,
+    );
+  }
+
   return sizes;
 }
 
@@ -112,10 +132,23 @@ async function main() {
   const byLower = new Map(Object.entries(lock.packages).map(([n, e]) => [n.toLowerCase(), [n, e]]));
 
   // 분야 표에 실을 것부터 골라내고, 그것들만 크기를 잰다.
+  // GROUPS 에 적었는데 락파일에 없으면 알려 준다. 오타인지 정말 없는 것인지
+  // 출력에 남지 않으면 표가 비어 있어도 아무도 알아채지 못한다.
+  const missing = [];
   const picked = GROUPS.map(({ title, names }) => ({
     title,
-    hits: names.map((n) => byLower.get(n.toLowerCase())).filter(Boolean),
+    hits: names
+      .map((n) => {
+        const hit = byLower.get(n.toLowerCase());
+        if (!hit) missing.push(n);
+        return hit;
+      })
+      .filter(Boolean),
   }));
+
+  if (missing.length) {
+    console.warn(`GROUPS 에 적혔지만 락파일에 없어 표에서 빠집니다: ${missing.join(', ')}`);
+  }
 
   const grouped = new Set(picked.flatMap(({ hits }) => hits.map(([name]) => name)));
   const baseUrl = `https://cdn.jsdelivr.net/pyodide/v${version}/full/`;
@@ -171,6 +204,8 @@ ${plainTable(rest.map(([name, entry]) => plainRow(name, entry)))}
 import micropip
 await micropip.install("plotly")
 \`\`\`
+
+\`plotly\` 와 \`seaborn\` 이 대표적이다. 둘 다 락파일에는 없지만 순수 파이썬이라 이렇게 설치된다.
 
 되는지 판별하는 법은 간단하다. PyPI 의 그 패키지 "Download files" 탭을 열어 \`*-py3-none-any.whl\` 이 있는지 본다.
 
