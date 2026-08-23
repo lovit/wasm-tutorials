@@ -69,6 +69,10 @@ benchButton.addEventListener('click', () =>
     let rows;
     try {
       rows = fn(Number(sizeSelect.value));
+    } catch (error) {
+      status.replaceChildren(); // 안내문 뒤에 트레이스백이 이어 붙지 않게 비운다
+      renderPythonError(status, error);
+      return;
     } finally {
       fn.destroy();
     }
@@ -95,6 +99,7 @@ liveButton.addEventListener('click', () =>
     try {
       status.textContent = `기본 백엔드(${await fn()})로 그렸습니다.`;
     } catch (error) {
+      status.replaceChildren(); // 안내문 뒤에 트레이스백이 이어 붙지 않게 비운다
       renderPythonError(status, error);
     } finally {
       fn.destroy();
@@ -111,6 +116,7 @@ pngButton.addEventListener('click', () =>
       pngTarget.alt = 'agg 백엔드가 그린 sin 곡선과 감쇠 곡선';
       status.textContent = `PNG ${formatBytes(atob(encoded).length)} 를 받아 넣었습니다.`;
     } catch (error) {
+      status.replaceChildren(); // 안내문 뒤에 트레이스백이 이어 붙지 않게 비운다
       renderPythonError(status, error);
     } finally {
       fn.destroy();
