@@ -133,7 +133,7 @@ importing from _ssl does not fail. Actual SSL operations are not supported.
 ### 5. 층으로 보면 이렇다
 
 ```text
-1. 소켓        예외 없이 연결된다. 없는 호스트에도 그렇다
+1. 소켓        예외 없이 연결된다. 없는 호스트에도 연결된다
    그런데 보내려 하면 곧바로 막힌다 — TimeoutError: timed out
    콘솔에 WebSocket connection to 'ws://…' failed 가 남는 것이 그 흔적이다.
 2. TLS         컨텍스트는 만들어지는데 감싸는 데서 막힘 — RuntimeError: TLS not supported in this environment

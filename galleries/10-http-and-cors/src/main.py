@@ -8,6 +8,8 @@ from collections.abc import Callable
 from urllib.parse import urlparse
 
 import js
+
+# 함수 안에서 import 하면 첫 호출 시간에 330ms 가 섞여 통로 비용을 못 잰다. 위에서 한 번만 문다.
 import requests
 from pyodide.http import open_url, pyfetch
 
@@ -28,6 +30,7 @@ def host_and_port(url: str) -> tuple[str, int]:
     조용한 대체값을 두지 않는다. 못 뽑으면 그렇다고 말하는 편이, 엉뚱한 데를 두드려 놓고
     그 결과를 이 주소의 결과인 양 보여 주는 것보다 낫다.
     """
+    url = url.strip()  # 붙여넣다 딸려온 공백이 connect 단계까지 살아남지 않게 한다
     if "//" in url:
         text = url
     elif url.startswith("/"):
