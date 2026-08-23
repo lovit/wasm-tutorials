@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>03. 출력과 오류를 화면으로 — Pyodide 갤러리</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">← 갤러리 목록</a>
+      <h1>03. 출력과 오류를 화면으로</h1>
+      <p class="lede">
+        <code>print</code> 한 것은 기본으로 브라우저 콘솔에 간다. 화면으로 돌리고, 오류는 따로 받고,
+        <code>input()</code> 까지 되게 만든다.
+      </p>
+
+      <pre class="output" id="boot">준비 중입니다</pre>
+
+      <section>
+        <h2>돌려 볼 코드</h2>
+        <div class="controls" id="samples">
+          <button type="button" data-sample="print">print 여러 줄</button>
+          <button type="button" data-sample="stderr">stderr 로 쓰기</button>
+          <button type="button" data-sample="error">오류 내기</button>
+          <button type="button" data-sample="input">input 쓰기</button>
+        </div>
+        <label for="code">파이썬 코드</label>
+        <textarea id="code" class="code" rows="8" spellcheck="false" disabled></textarea>
+
+        <label for="stdin">미리 넣어 둘 입력</label>
+        <textarea
+          id="stdin"
+          class="code"
+          rows="2"
+          spellcheck="false"
+          placeholder="input() 이 한 줄씩 읽어 갑니다. 비어 있으면 prompt() 창이 뜹니다."
+        ></textarea>
+
+        <div class="controls">
+          <button id="run" type="button" disabled>실행</button>
+          <label class="inline"
+            ><input type="checkbox" id="named" checked /> 코드에 파일 이름 붙이기</label
+          >
+          <label class="inline"
+            ><input type="checkbox" id="trim" checked /> 트레이스백에서 내부 프레임 감추기</label
+          >
+        </div>
+      </section>
+
+      <section>
+        <h2>어디로 갔나</h2>
+        <div class="streams">
+          <div>
+            <h3>stdout</h3>
+            <pre class="output stream" id="out"></pre>
+          </div>
+          <div>
+            <h3>stderr</h3>
+            <pre class="output stream err" id="err"></pre>
+          </div>
+        </div>
+        <p class="hint" id="summary" role="status"></p>
+        <h3>돌려준 값</h3>
+        <pre class="output" id="value" role="status"></pre>
+      </section>
+
+      <p><a href="../02-loading-progress/">← 이전: 02. 로딩 비용 드러내기</a></p>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,48 @@
+/* stdout 과 stderr 를 나란히 놓아 어디로 갔는지 한눈에 보이게 한다. */
+.streams {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 46rem) {
+  .streams {
+    grid-template-columns: 1fr;
+  }
+}
+
+.streams h3,
+main > section > h3 {
+  margin: 1.2rem 0 0.4rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.stream {
+  min-height: 7rem;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+/* stderr 는 색으로 갈라 놓는다. 글자만 보고 어느 쪽인지 세지 않아도 되게. */
+.stream.err {
+  border-color: #d1242f;
+  color: #82071e;
+  background: #fff5f5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .stream.err {
+    color: #ffb3ba;
+    background: #2b0f11;
+  }
+}
+
+/* base.css 의 label 은 블록이다. 체크박스 옆에 붙일 때는 한 줄로 둔다. */
+label.inline {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0;
+  font-size: 0.9rem;
+}

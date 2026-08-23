@@ -26,7 +26,7 @@ mise run serve    # http://localhost:4173/galleries/
 | --- | --- | --- |
 | 01 | [`01-hello-pyodide`](./01-hello-pyodide/) | `getPyodide()` 와 `runPython()`, 첫 방문에 드는 6MB 를 직접 재기 |
 | 02 | [`02-loading-progress`](./02-loading-progress/) | 패키지를 얹는 비용, 의존성이 딸려 오는 것, 미리 받기의 실측 |
-| 03 | `03-stdout-and-errors` | `print` 를 화면으로 돌리고 트레이스백을 보여 주기 |
+| 03 | [`03-stdout-and-errors`](./03-stdout-and-errors/) | `print` 를 화면으로 돌리고, `input()` 을 되게 하고, 트레이스백을 읽히게 하기 |
 | 04 | `04-type-conversions` | 값이 오가는 규칙. `null` 과 `undefined` 가 갈리는 자리 |
 | 05 | `05-pyproxy-lifetime` | 왜 `destroy()` 가 필요한가. 누수를 눈으로 보기 |
 | 06 | `06-dom-from-python` | 파이썬에서 DOM 만지기, `create_proxy` 의 함정 |
