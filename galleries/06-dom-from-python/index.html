@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>06. 파이썬에서 DOM 만지기 — Pyodide 갤러리</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">← 갤러리 목록</a>
+      <h1>06. 파이썬에서 DOM 만지기</h1>
+      <p class="lede">
+        화면을 만드는 코드가 전부 파이썬 쪽에 있다. 이벤트 핸들러를 넘길 때 05번에서 배운 손잡이
+        규칙이 그대로 걸린다.
+      </p>
+
+      <pre class="output" id="boot">준비 중입니다</pre>
+
+      <section>
+        <h2>파이썬으로 만드는 목록</h2>
+        <fieldset id="mode">
+          <legend>지우기 버튼에 핸들러를 붙이는 방법</legend>
+          <label class="inline"><input type="radio" name="mode" value="plain" /> 그냥 넘기기</label>
+          <label class="inline"
+            ><input type="radio" name="mode" value="proxy" checked /> create_proxy</label
+          >
+          <label class="inline"><input type="radio" name="mode" value="wrappers" /> wrappers</label>
+        </fieldset>
+
+        <div class="controls">
+          <label for="text">할 일</label>
+          <input id="text" type="text" value="파이썬으로 DOM 만지기" disabled />
+          <button id="add" type="button" disabled>넣기</button>
+          <button id="clear" type="button" disabled>전부 지우기</button>
+        </div>
+
+        <ul id="todo-list"></ul>
+
+        <div role="status">
+          <table class="metrics" id="proxy-count">
+            <thead>
+              <tr>
+                <th scope="col">항목</th>
+                <th scope="col">값</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <pre class="output" id="handler-error" role="alert"></pre>
+      </section>
+
+      <section>
+        <h2>옵션을 넘기는 네 가지 방법</h2>
+        <p class="hint">
+          파이썬 딕셔너리를 자바스크립트 API 의 옵션 자리에 넘길 때 무엇이 되고 무엇이 안 되는지.
+        </p>
+        <div class="controls">
+          <button id="options" type="button" disabled>확인해 보기</button>
+        </div>
+        <pre class="output" id="options-result" role="status"></pre>
+      </section>
+
+      <p><a href="../05-pyproxy-lifetime/">← 이전: 05. PyProxy 의 수명</a></p>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

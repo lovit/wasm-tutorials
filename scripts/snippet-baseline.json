@@ -3,5 +3,6 @@
   "02-loading-progress": 7,
   "03-stdout-and-errors": 7,
   "04-type-conversions": 9,
-  "05-pyproxy-lifetime": 9
+  "05-pyproxy-lifetime": 9,
+  "06-dom-from-python": 9
 }
