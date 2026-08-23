@@ -19,6 +19,9 @@ print("끝났습니다")
   stderr: `import sys
 import warnings
 
+# 이 줄이 없으면 같은 자리의 경고는 처음 한 번만 찍힌다.
+warnings.simplefilter("always")
+
 print("이건 stdout 으로 갑니다")
 print("이건 stderr 로 갑니다", file=sys.stderr)
 warnings.warn("경고도 stderr 로 갑니다")
@@ -42,6 +45,7 @@ len(name)
 };
 
 const bootBox = document.querySelector('#boot');
+const summary = document.querySelector('#summary');
 const codeInput = document.querySelector('#code');
 const stdinInput = document.querySelector('#stdin');
 const runButton = document.querySelector('#run');
@@ -79,8 +83,10 @@ async function start() {
   samples.addEventListener('click', pickSample);
   runButton.addEventListener('click', () => run(pyodide));
   runButton.disabled = false;
+  codeInput.disabled = false;
 
-  codeInput.value = SAMPLES.print;
+  // 부팅하는 몇 초 동안 사용자가 이미 뭔가 쳤을 수 있다. 그걸 덮어쓰지 않는다.
+  if (codeInput.value.trim() === '') codeInput.value = SAMPLES.print;
   run(pyodide);
 }
 
@@ -102,7 +108,9 @@ function connectStreams(pyodide) {
 }
 
 function append(box, line) {
-  box.textContent += `${line}\n`;
+  // textContent += 는 줄마다 문자열 전체를 다시 만든다. 출력이 길어지면 제곱으로 느려진다.
+  box.append(`${line}\n`);
+  box.scrollTop = box.scrollHeight;
 }
 
 function pickSample(event) {
@@ -113,29 +121,52 @@ function pickSample(event) {
 }
 
 function run(pyodide) {
-  outBox.textContent = '';
-  errBox.textContent = '';
+  // 지우기 전에 떨군다. 지난 실행이 개행 없이 끝냈으면 그 조각이 여기서 흘러나오는데,
+  // 곧바로 지워지므로 이번 출력 앞에 유령처럼 붙는 일이 없다.
+  flushLeftover(pyodide);
+
+  outBox.replaceChildren();
+  errBox.replaceChildren();
   valueBox.replaceChildren();
 
-  pending = stdinInput.value.split('\n').filter((line) => line !== '');
+  // 마지막 개행만 뗀다. 중간의 빈 줄은 입력값으로 쓸 수 있어야 한다.
+  const typed = stdinInput.value.replace(/\n$/, '');
+  pending = typed === '' ? [] : typed.split('\n');
 
-  // 이름을 주면 트레이스백에 소스 줄이 나온다. 안 주면 <exec> 로 잡혀서 줄만 나온다.
-  // 꺾쇠로 감싼 이름은 파일이 아니라는 뜻이라 파이썬이 소스를 찾지 않는다.
+  // 이름을 주면 Pyodide 가 그 이름으로 소스를 linecache 에 등록해 둔다.
+  // 트레이스백은 거기서 줄을 꺼내 온다. 안 주면 <exec> 로 잡히고 등록도 건너뛴다.
   const options = namedToggle.checked ? { filename: 'user_code.py' } : {};
 
   let value;
   try {
     value = pyodide.runPython(codeInput.value, options);
+    valueBox.textContent = value === undefined ? '(없음)' : String(value);
   } catch (error) {
     showTraceback(error);
-    return;
-  }
-
-  try {
-    valueBox.textContent = value === undefined ? '(없음)' : String(value);
   } finally {
     value?.destroy?.();
+    announce();
   }
+}
+
+/**
+ * 스크린 리더에는 줄마다 읽어 주는 대신 끝나고 한 번만 알린다.
+ * 출력이 몇만 줄이 될 수 있어서, 스트림 칸 자체를 live region 으로 두면 그만큼 읽는다.
+ */
+function announce() {
+  const count = (box) => box.textContent.split('\n').filter(Boolean).length;
+  summary.textContent = `실행이 끝났습니다. stdout ${count(outBox)}줄, stderr ${count(errBox)}줄.`;
+}
+
+/**
+ * 개행 없이 남은 출력 조각을 흘려보낸다.
+ *
+ * batched 는 개행에서만 흘려보내므로 print("a", end="") 로 끝나면 "a" 가 버퍼에 남는다.
+ * setStdout 을 다시 걸어도 sys.stdout.flush() 를 불러도 비워지지 않는다.
+ * 개행을 하나 찍어 주는 것이 유일한 방법이다.
+ */
+function flushLeftover(pyodide) {
+  pyodide.runPython('print()');
 }
 
 /**
@@ -146,8 +177,8 @@ function run(pyodide) {
  */
 function showTraceback(error) {
   const text = trimToggle.checked ? trimInternalFrames(error.message) : error.message;
-  const box = renderPythonError(errBox, text);
-  box.textContent = `${text}\n\n예외 종류: ${error.type ?? '(알 수 없음)'}`;
+  renderPythonError(errBox, { message: `${text}\n\n예외 종류: ${error.type ?? '(알 수 없음)'}` });
+  valueBox.textContent = '(오류가 나서 값이 없습니다)';
 }
 
 /**
@@ -157,21 +188,27 @@ function showTraceback(error) {
  * 붙는다. 남의 코드 이야기라 읽는 사람에게는 잡음이다.
  */
 function trimInternalFrames(message) {
-  const lines = message.split('\n');
   const kept = [];
   let skipping = false;
 
-  for (const line of lines) {
+  for (const line of message.split('\n')) {
     const frame = line.match(/^ {2}File "([^"]+)"/);
     if (frame) {
       skipping = frame[1].includes('_pyodide/_base.py');
       if (skipping) continue;
+      // 다른 파일의 프레임이 나왔으면 건너뛰기를 멈춘다.
     } else if (skipping) {
-      // 프레임 아래 딸린 소스 줄과 캐럿까지 함께 버린다.
-      continue;
+      // 프레임에 딸린 소스 줄과 캐럿은 네 칸 이상 들여쓰기돼 있다. 거기까지만 버린다.
+      // 들여쓰기가 없는 줄은 예외 메시지이므로 남겨야 한다. 안 그러면
+      // 마지막 프레임이 내부 프레임일 때 정작 무슨 오류인지가 사라진다.
+      if (/^ {4}/.test(line)) continue;
+      skipping = false;
     }
     kept.push(line);
   }
 
   return kept.join('\n');
 }
+
+// ExceptionGroup 의 트레이스백은 프레임 줄이 "  |   File ..." 모양이라 위 정규식에
+// 걸리지 않는다. 내부 프레임이 그대로 보이지만 메시지가 사라지지는 않는다.
