@@ -97,7 +97,7 @@ galleries/NN-job-name/
 
 - 워커는 `new Worker(url, { type: 'module' })` 이어야 한다. `importScripts()` 방식은 지원하지 않는다
 - `sqlite3` 와 `lzma` 가 기본 번들에 들어갔다. `loadPackage("sqlite3")` 는 필요 없다
-- `ssl` 은 스텁이다. import 는 되지만 실제 TLS 는 `NotImplementedError` 를 던진다
+- `ssl` 은 스텁이다. import 는 되고 `create_default_context()` 도 되지만 `SSLContext.wrap_socket()` 이 `RuntimeError: TLS not supported in this environment` 를 던진다. `ssl.OPENSSL_VERSION` 이 `'OpenSSL (stub)'` 인 것으로 확인할 수 있다
 - (0.28.0 부터) 자바스크립트의 `null` 은 `jsnull` 로, `undefined` 는 `None` 으로 변환된다. 둘이 구별된다. 옛 동작으로 돌리는 `convertNullToNone` 옵션이 아직 있지만 없어질 예정이다
 - (0.28.0 부터) `PyProxy` 에 `[Symbol.dispose]` 가 있어서 `using` 을 쓸 수 있다. 다만 `using` 은 JS 엔진 쪽 기능이라 브라우저를 가린다. @.claude/rules/web-style.md 를 보자
 
