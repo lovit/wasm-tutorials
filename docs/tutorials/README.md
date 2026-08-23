@@ -9,7 +9,7 @@
 | 문서 | 다루는 것 | 상태 |
 | --- | --- | --- |
 | [01. WebAssembly 는 어떻게 도는가](01-how-wasm-works.md) | 선형 메모리, 32비트 포인터와 4GB 상한, JS 와의 경계로는 숫자만 오간다는 것 | 썼다 |
-| [02. CPython 을 브라우저로 옮기기](02-emscripten-and-cpython.md) | Emscripten 이 하는 일, 가짜 파일시스템, 소켓과 스레드가 없는 이유 | 썼다 |
+| [02. CPython 을 브라우저로 옮기기](02-emscripten-and-cpython.md) | Emscripten 이 하는 일, 가짜 파일시스템, 소켓과 프로세스가 없는 이유 | 썼다 |
 | 03. loadPyodide 가 하는 일 | 부팅 순서와 각 단계에서 내려받는 양 | 예정 |
 | 04. PyProxy 는 무엇인가 | 왜 `destroy()` 가 필요한가, 값 변환 규칙, 버퍼를 복사 없이 넘기기 | 예정 |
 | 05. wheel 과 ABI | `pyemscripten_2026_0` 이 뜻하는 것, micropip 이 하는 일 | 예정 |

@@ -48,10 +48,11 @@ os.statvfs('/')  f_bsize=4096, f_frsize=4096, f_blocks=1000…
 | `threading` 으로 스레드 시작 | `RuntimeError: can't start new thread`                        |
 | `socket` 으로 주고받기       | `TimeoutError` 또는 `BlockingIOError`                         |
 | `SSLContext.wrap_socket()`   | `RuntimeError: TLS not supported in this environment`         |
-| `ssl.wrap_socket`            | `AttributeError` — 3.12 에서 없어진 함수다                    |
 | `import resource`            | `ModuleNotFoundError`                                         |
 | `signal.alarm`               | `AttributeError`                                              |
 | `os.cpu_count()`             | `1`                                                           |
+
+옛 자료가 시키는 `ssl.wrap_socket` 은 여기서 `AttributeError` 가 난다. 다만 이건 표에 넣지 않았다. 브라우저와 상관없이 파이썬 3.12 에서 없어진 함수라서다.
 
 여기서 하나가 다른 것들과 성격이 다르다. **`os.system("ls")` 는 예외를 내지 않고 `-1` 을 돌려준다.** 셸에서 명령이 실패했을 때와 똑같은 모양이라, 명령이 없거나 실패한 줄 알기 쉽다. 실제로는 명령을 실행할 수단 자체가 없다.
 
@@ -87,7 +88,7 @@ time.tzname             ('UTC+0900', 'UTC+0900')
 | 이 문서의 이야기 | 확인한 예제 |
 | --- | --- |
 | `sys.platform == "emscripten"` | [01. 처음 만나는 Pyodide](../../galleries/01-hello-pyodide/) |
-| 트레이스백이 그대로 살아 있다 | [03. 찍고 읽고 터뜨리기](../../galleries/03-stdout-and-errors/) |
+| 파이썬은 자기가 유닉스 위에 있다고 믿는다 | [03. 찍고 읽고 터뜨리기](../../galleries/03-stdout-and-errors/) |
 | 파이썬 객체는 WASM 힙 안에 있다 | [05. 손잡이의 수명](../../galleries/05-pyproxy-lifetime/) |
 | MEMFS 는 새로고침에 사라진다 | [08. 파일 다루기](../../galleries/08-file-system/) |
 | 네이티브 확장은 이 ABI 로 빌드돼야 한다 | [09. PyPI 에서 설치하기](../../galleries/09-packages-micropip/) |

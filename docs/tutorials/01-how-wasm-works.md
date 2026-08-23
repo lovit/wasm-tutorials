@@ -28,7 +28,7 @@ WebAssembly 는 브라우저가 실행할 수 있는 저수준 명령어 형식�
 | `add([7], 1)`        | `8`           | 배열이 `7` 로 바뀌었다         |
 | `add({a: 1}, 1)`     | `1`           | 객체는 `NaN` 을 거쳐 0 이 됐다 |
 
-자바스크립트의 `ToNumber` 를 그냥 한 번 거치는 것이다. `null` 과 `undefined` 도 조용히 0 이 된다. 예외를 내는 것은 `ToNumber` 자체가 거부하는 BigInt 와 Symbol 둘뿐이다.
+자바스크립트의 `ToNumber` 를 그냥 한 번 거치는 것이다. `null` 과 `undefined` 도 조용히 0 이 된다. `ToNumber` 가 원시값 중에 거부하는 것은 BigInt 와 Symbol 둘이고, 그때만 `TypeError` 가 올라온다.
 
 숫자로 바뀌지 않는 값이라고 막아 주지 않는다는 것이 핵심이다. `{a: 1}` 은 `NaN` 을 거쳐 0 이 되고, 아무 일도 없었던 것처럼 계산이 이어진다.
 
@@ -75,6 +75,8 @@ memory section: flags=1 min=480 pages = 30.00 MiB | max=65536 pages = 4.00 GiB
 
 WASM 의 페이지는 64 KiB 다. 최소 480 페이지로 시작해 최대 65,536 페이지까지 자란다고 선언돼 있다. 앞에서 잰 `HEAP8.length` 30.00 MiB 가 이 `min` 과 정확히 같고, `max` 는 wasm32 가 가리킬 수 있는 끝까지다.
 
+`flags` 도 그냥 지나칠 값이 아니다. 이 자리는 비트 두 개를 쓴다. 0번 비트는 최댓값이 적혀 있다는 뜻이고, 1번 비트는 이 메모리를 여러 스레드가 함께 본다는 뜻이다. 값이 1 이니 최댓값은 있고 공유는 아니다. 이 한 비트가 뒤에서 다시 나온다.
+
 런타임 쪽에서 같은 값을 읽는 방법도 있기는 하다. `WebAssembly.Memory.prototype.type()` 인데 Chrome 151 에는 없었다 (`mem.type is not a function`). 그래서 파일을 뜯어 읽었다.
 
 ## MIME 을 틀리면 아예 안 뜬다
@@ -114,7 +116,9 @@ SharedArrayBuffer   = function / new → ok
 threading           RuntimeError: can't start new thread
 ```
 
-`SharedArrayBuffer` 가 실제로 만들어지는 상태인데도 결과가 같다. 배포되는 Pyodide 빌드에 pthreads 가 들어 있지 않아서다. 파이썬이 알려주는 빌드 플래그에도 `-pthread` 가 없다.
+`SharedArrayBuffer` 가 실제로 만들어지는 상태인데도 결과가 같다. 배포되는 Pyodide 빌드에 pthreads 가 들어 있지 않아서다.
+
+앞에서 읽은 memory section 이 이것을 뒷받침한다. `flags=1` 은 이 선형 메모리가 공유되지 않는다는 뜻이었다. 스레드를 쓰려면 메모리부터 공유돼야 하니, 이 빌드는 바이너리 수준에서 이미 스레드를 못 한다.
 
 **격리는 필요조건이지 충분조건이 아니다.** 격리를 켜면 `threading` 이 열릴 것이라 기대하면 안 된다. 격리가 실제로 열어 주는 것은 실행 중인 파이썬을 밖에서 멈추는 길이고, 그 이야기는 고급편의 cross-origin isolation 예제와 인터럽트 예제에서 다룬다.
 
