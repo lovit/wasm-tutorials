@@ -28,15 +28,17 @@
           <button id="leak" type="button" disabled>손잡이 100개 만들고 안 놓기</button>
           <button id="release" type="button" disabled>모아 둔 것 전부 놓기</button>
         </div>
-        <table class="metrics" id="ref-result" role="status">
-          <thead>
-            <tr>
-              <th scope="col">항목</th>
-              <th scope="col">값</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div role="status">
+          <table class="metrics" id="ref-result">
+            <thead>
+              <tr>
+                <th scope="col">항목</th>
+                <th scope="col">값</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </section>
 
       <section>
@@ -49,15 +51,17 @@
           <button id="alloc" type="button" disabled>10 MiB 잡고 안 놓기</button>
           <button id="free" type="button" disabled>잡은 것 놓기</button>
         </div>
-        <table class="metrics" id="heap-result" role="status">
-          <thead>
-            <tr>
-              <th scope="col">항목</th>
-              <th scope="col">값</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div role="status">
+          <table class="metrics" id="heap-result">
+            <thead>
+              <tr>
+                <th scope="col">항목</th>
+                <th scope="col">값</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </section>
 
       <section>
@@ -65,16 +69,18 @@
         <div class="controls">
           <button id="ways" type="button" disabled>세 가지를 나란히 돌려 보기</button>
         </div>
-        <table class="metrics wide" id="ways-result" role="status">
-          <thead>
-            <tr>
-              <th scope="col">방법</th>
-              <th scope="col">이 브라우저에서</th>
-              <th scope="col">참조 수가 돌아왔나</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div role="status">
+          <table class="metrics wide" id="ways-result">
+            <thead>
+              <tr>
+                <th scope="col">방법</th>
+                <th scope="col">이 브라우저에서</th>
+                <th scope="col">참조 수가 돌아왔나</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </section>
 
       <section>
