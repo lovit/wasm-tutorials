@@ -1,0 +1,74 @@
+# 이 저장소의 도구 버전, 환경변수, task 를 한곳에서 관리한다.
+# 처음 받았다면: mise trust && mise install && mise run setup
+
+[tools]
+node = "24"
+python = "3.14"
+
+[env]
+# .env 가 있으면 읽어서 아래 기본값을 덮어쓴다. 파일이 없어도 오류가 아니다.
+_.file = ".env"
+
+# 정적 서버 포트
+PORT = "4173"
+
+[tasks.setup]
+description = "prek 훅을 설치한다"
+run = ["prek install", "prek install --hook-type commit-msg"]
+
+[tasks.serve]
+description = "의존성 없는 정적 서버를 띄운다"
+run = "node scripts/serve.mjs"
+
+[tasks.fmt]
+description = "prettier 로 전체 포맷팅 (마크다운 하드랩도 여기서 풀린다)"
+run = "npx --yes prettier@3.9 --write ."
+
+[tasks."lint:fmt"]
+description = "포맷팅 검사"
+run = "npx --yes prettier@3.9 --check ."
+
+[tasks."lint:md"]
+description = "마크다운 린트"
+run = "npx --yes markdownlint-cli2@0.23 \"**/*.md\" \"!node_modules\" \"!_site\""
+
+[tasks."lint:py"]
+description = "예제 안의 파이썬 코드를 ruff 로 검사한다"
+run = "uvx ruff@0.14 check ."
+
+[tasks.lint]
+description = "린트 전체"
+depends = ["lint:fmt", "lint:md", "lint:py"]
+
+[tasks.site]
+description = "GitHub Pages 로 올릴 정적 사이트를 _site/ 에 만든다"
+run = "node scripts/build-site.mjs"
+
+[tasks."site:serve"]
+description = "빌드한 사이트를 띄워 확인한다"
+depends = ["site"]
+run = "node scripts/serve.mjs _site"
+
+[tasks."docs:packages"]
+description = "Pyodide 락파일을 받아 docs/packages.md 를 다시 만든다"
+# 생성 직후 prettier 를 돌린다. 표 정렬을 손으로 맞출 수 없으니 도구에 맡긴다.
+run = [
+  "node scripts/build-package-table.mjs",
+  "npx --yes prettier@3.9 --write docs/packages.md",
+]
+
+[tasks."check:wrap"]
+description = "마크다운 하드랩 검사"
+run = "node scripts/check-hard-wrap.mjs"
+
+[tasks."check:snippets"]
+description = "튜토리얼 코드 조각이 소스와 맞는지 본다. 링크 수가 줄면 실패한다"
+run = "node scripts/check-snippets.mjs"
+
+[tasks."check:galleries"]
+description = "갤러리 구조와 목차 정합성 검사"
+run = "node scripts/check-galleries.mjs"
+
+[tasks.check]
+description = "CI 와 동일한 검사"
+depends = ["check:wrap", "check:galleries", "check:snippets"]
