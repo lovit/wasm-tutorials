@@ -2,5 +2,6 @@
   "01-hello-pyodide": 10,
   "02-loading-progress": 7,
   "03-stdout-and-errors": 7,
-  "04-type-conversions": 9
+  "04-type-conversions": 9,
+  "05-pyproxy-lifetime": 9
 }
