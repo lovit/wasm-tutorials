@@ -1,0 +1,27 @@
+#kind {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0 0 1rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+#kind legend {
+  padding: 0 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* 호출 기록이 쌓인다. 높이를 묶어 두고 안에서 스크롤한다. */
+#call-log {
+  max-height: 14rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+#to-js-result,
+#channels-result {
+  white-space: pre-wrap;
+}

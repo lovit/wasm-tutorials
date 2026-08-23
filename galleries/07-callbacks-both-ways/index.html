@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>07. 함수를 양쪽으로 넘기기 — Pyodide 갤러리</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">← 갤러리 목록</a>
+      <h1>07. 함수를 양쪽으로 넘기기</h1>
+      <p class="lede">
+        파이썬 함수를 자바스크립트가 부르고, 자바스크립트 함수를 파이썬이 부른다. 그 사이에서 인자와
+        손잡이가 어떻게 되는지 눌러 가며 본다.
+      </p>
+
+      <pre class="output" id="boot">준비 중입니다</pre>
+
+      <section>
+        <h2>자바스크립트가 파이썬 함수를 부른다</h2>
+        <p class="hint">
+          파이썬이 손잡이를 만들어 자바스크립트에게 <strong>인자로</strong> 맡기고, 자바스크립트가
+          그것을 붙잡아 뒀다가 나중에 부른다. 06번의 <code>addEventListener</code> 와 같은 모양이다.
+          만드는 방법을 바꿔 가며 두 번씩 눌러 보자.
+        </p>
+        <fieldset id="kind">
+          <legend>손잡이 만드는 방법</legend>
+          <label class="inline"><input type="radio" name="kind" value="plain" /> 그냥 넘기기</label>
+          <label class="inline"
+            ><input type="radio" name="kind" value="proxy" checked /> create_proxy</label
+          >
+          <label class="inline"
+            ><input type="radio" name="kind" value="once" /> create_once_callable</label
+          >
+        </fieldset>
+        <div class="controls">
+          <button id="make" type="button" disabled>손잡이 만들기</button>
+          <button id="call" type="button" disabled>불러 보기</button>
+          <button id="call-kw" type="button" disabled>키워드 인자로 불러 보기</button>
+          <button id="release" type="button" disabled>모아 둔 것 놓기</button>
+          <button id="return" type="button" disabled>반환값으로 받아 부르기</button>
+        </div>
+        <pre class="output" id="call-log" role="status">아직 부르지 않았습니다.</pre>
+        <div role="status">
+          <table class="metrics" id="held">
+            <thead>
+              <tr>
+                <th scope="col">항목</th>
+                <th scope="col">값</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>파이썬이 자바스크립트 함수를 부른다</h2>
+        <p class="hint">
+          파이썬에는 키워드 인자가 있고 자바스크립트에는 없다. 그 차이가 어디로 가는지 본다.
+        </p>
+        <div class="controls">
+          <button id="to-js" type="button" disabled>양쪽 방식으로 불러 보기</button>
+        </div>
+        <pre class="output" id="to-js-result" role="status"></pre>
+      </section>
+
+      <section>
+        <h2>값을 넘기는 통로</h2>
+        <div class="controls">
+          <button id="channels" type="button" disabled>어디에 남는지 확인</button>
+        </div>
+        <pre class="output" id="channels-result" role="status"></pre>
+      </section>
+
+      <p><a href="../06-dom-from-python/">← 이전: 06. 파이썬에서 DOM 만지기</a></p>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

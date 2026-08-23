@@ -30,7 +30,7 @@ mise run serve    # http://localhost:4173/galleries/
 | 04 | [`04-type-conversions`](./04-type-conversions/) | 값이 오가는 규칙. `null` 과 `undefined` 가 갈리는 자리 |
 | 05 | [`05-pyproxy-lifetime`](./05-pyproxy-lifetime/) | 왜 `destroy()` 가 필요한가. 누수를 숫자로 보기 |
 | 06 | [`06-dom-from-python`](./06-dom-from-python/) | 파이썬에서 DOM 만지기, 핸들러를 넘길 때 걸리는 것들 |
-| 07 | `07-callbacks-both-ways` | 함수를 양쪽으로 넘기기, 키워드 인자가 사라지는 자리 |
+| 07 | [`07-callbacks-both-ways`](./07-callbacks-both-ways/) | 함수를 양쪽으로 넘기기, 빌린 손잡이와 넘겨준 손잡이 |
 | 08 | `08-file-system` | 가짜 파일시스템, 파일 올리고 내려받기, 영속화 |
 | 09 | `09-packages-micropip` | PyPI 에서 바로 설치하기, 되는 것과 안 되는 것 가리기 |
 | 10 | `10-http-and-cors` | 왜 `requests` 가 그냥은 안 되는가 |
