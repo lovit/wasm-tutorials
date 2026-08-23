@@ -20,16 +20,6 @@
   color: var(--muted);
 }
 
-/* base.css 의 label 은 블록이다. 옵션은 한 줄에 놓는다. */
-label.inline {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-  margin: 0;
-  color: inherit;
-  font-size: 0.9rem;
-}
-
 #depth-out {
   min-width: 6rem;
   color: var(--muted);

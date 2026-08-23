@@ -105,6 +105,16 @@ table.metrics tbody td {
   font-variant-numeric: tabular-nums;
 }
 
+/* 체크박스나 라디오 옆에 붙는 라벨. 블록이 아니라 한 줄로 둔다. */
+label.inline {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0;
+  color: inherit;
+  font-size: 0.95rem;
+}
+
 /* 버튼 옆이나 입력칸 아래에 붙는 짧은 설명. */
 .hint {
   font-size: 0.9rem;
