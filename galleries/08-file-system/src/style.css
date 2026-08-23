@@ -1,0 +1,37 @@
+/* 경로는 길다. 들여쓰기는 살리되 줄바꿈은 되게 한다. pre 로 두면 긴 이름 하나에
+   페이지 전체가 가로로 밀린다. */
+#tree th[scope='row'] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+  font-weight: 400;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+#tree th.dir {
+  color: var(--muted);
+}
+
+#tree td {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#note {
+  min-width: 12rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: inherit;
+  font-size: 0.95rem;
+}
+
+/* 라벨을 입력칸 옆에 둔다. base.css 의 블록 라벨을 여기서만 눕힌다. */
+.controls label {
+  margin: 0;
+}
+
+pre.output:empty {
+  display: none;
+}

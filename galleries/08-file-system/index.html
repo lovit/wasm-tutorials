@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>08. 파일 다루기 — Pyodide 갤러리</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">← 갤러리 목록</a>
+      <h1>08. 파일 다루기</h1>
+      <p class="lede">
+        01번에서 <code>open("/tmp/x.txt", "w")</code> 가 그냥 됐다. 그 파일시스템이 무엇인지,
+        어디까지 진짜인지, 새로고침하면 어떻게 되는지 본다.
+      </p>
+
+      <pre class="output" id="boot">준비 중입니다</pre>
+
+      <section>
+        <h2>지금 있는 파일들</h2>
+        <div class="controls">
+          <button id="refresh" type="button" disabled>다시 훑기</button>
+        </div>
+        <div role="status">
+          <table class="metrics" id="tree">
+            <thead>
+              <tr>
+                <th scope="col">경로</th>
+                <th scope="col">크기</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>파일 올리기</h2>
+        <p class="hint">
+          고른 파일이 <code>/work</code> 에 나타나고, 파이썬이 그것을 읽는다. 브라우저 밖으로 나가지
+          않는다.
+        </p>
+        <div class="controls">
+          <label for="upload">파일 고르기</label>
+          <input id="upload" type="file" disabled />
+        </div>
+        <pre class="output" id="upload-result" role="status"></pre>
+      </section>
+
+      <section>
+        <h2>파일 내려받기</h2>
+        <p class="hint">파이썬이 만든 파일을 브라우저가 내려받게 한다.</p>
+        <div class="controls">
+          <label for="note">남길 말</label>
+          <input id="note" type="text" value="안녕하세요" disabled />
+          <button id="download" type="button" disabled>만들어서 내려받기</button>
+        </div>
+        <pre class="output" id="download-result" role="status"></pre>
+      </section>
+
+      <section>
+        <h2>새로고침해도 남게 하기</h2>
+        <p class="hint">
+          <code>/persist</code> 는 IDBFS 로 마운트해 두었다. 쓴 다음 <code>syncfs</code> 를 불러야
+          실제로 저장된다. 두 버튼의 차이를 새로고침해서 확인하자.
+        </p>
+        <div class="controls">
+          <button id="save-sync" type="button" disabled>쓰고 저장까지</button>
+          <button id="save-nosync" type="button" disabled>쓰기만 하고 저장 안 함</button>
+          <button id="reload" type="button">새로고침</button>
+        </div>
+        <pre class="output" id="persist-result" role="status"></pre>
+      </section>
+
+      <section>
+        <h2>압축 파일 풀기</h2>
+        <p class="hint">파이썬이 zip 을 하나 만들고, Pyodide 가 그것을 파일시스템에 푼다.</p>
+        <div class="controls">
+          <button id="unpack" type="button" disabled>만들어서 풀기</button>
+        </div>
+        <pre class="output" id="unpack-result" role="status"></pre>
+      </section>
+
+      <p><a href="../07-callbacks-both-ways/">← 이전: 07. 함수를 양쪽으로 넘기기</a></p>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
