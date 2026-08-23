@@ -86,6 +86,7 @@ try {
 - `<!doctype html>` 과 `<meta charset="utf-8">` 로 시작한다
 - `lang="ko"` 를 붙인다
 - 폼 컨트롤에는 `<label>` 을 붙인다
+- 값이 바뀌는 자리에는 `role="status"` 를 붙여 스크린 리더가 읽게 한다. **다만 `<table>` 에 직접 걸지 않는다.** 표의 암묵적 롤이 덮여서 `th` 와 `scope` 로 만들어 둔 구조가 사라진다. `<div role="status">` 로 감싸면 둘 다 된다
 - 파이썬 코드가 길면 `src/main.py` 로 빼고 fetch 해서 넣는다. JS 템플릿 문자열 안에 스무 줄짜리 파이썬을 넣으면 하이라이트도 린트도 안 된다
 
 ## CSS
