@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      # 액션은 커밋 SHA 로 고정한다. 태그는 옮길 수 있다.
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: mise 설치
+        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        with:
+          experimental: true
+
+      - name: prek 훅 실행
+        run: |
+          mise use -g prek@latest
+          prek run --all-files --show-diff-on-failure
+
+      - name: 저장소 검사
+        run: mise run check
