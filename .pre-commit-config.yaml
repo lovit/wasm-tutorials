@@ -57,6 +57,15 @@ repos:
         pass_filenames: false
         files: '^galleries/'
 
+      # 소스를 고치고 튜토리얼을 두고 오는 실수를 커밋 시점에 잡는다.
+      # CI 까지 밀리면 발견이 늦다.
+      - id: check-snippets
+        name: 튜토리얼 코드 조각 검사
+        entry: node scripts/check-snippets.mjs
+        language: system
+        pass_filenames: false
+        files: '^galleries/'
+
       - id: check-commit-msg
         name: 커밋 메시지 형식 검사
         entry: node scripts/check-commit-msg.mjs

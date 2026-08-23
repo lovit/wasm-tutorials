@@ -51,13 +51,7 @@ done();
 `runPython()` 이 돌려주는 파이썬 객체는 JS 가 자동으로 못 걷는다. WASM 힙 안의 객체를 가리키는 핸들이라 GC 가 손댈 수 없기 때문이다. 다 쓰면 `destroy()` 하거나 `using` 으로 스코프를 벗어날 때 풀리게 한다.
 
 ```js
-// 좋음: 스코프를 벗어나면 자동으로 풀린다
-{
-  using result = pyodide.runPython('{"a": 1}');
-  render(result.toJs());
-}
-
-// 좋음: 직접 놓아 준다
+// 기본형. 어느 브라우저에서나 돈다.
 const result = pyodide.runPython('{"a": 1}');
 try {
   render(result.toJs());
@@ -65,6 +59,17 @@ try {
   result.destroy();
 }
 ```
+
+`using` 을 쓰면 스코프를 벗어날 때 알아서 풀린다. `PyProxy` 에 `[Symbol.dispose]` 가 있어서 되는 것이다.
+
+```js
+{
+  using result = pyodide.runPython('{"a": 1}');
+  render(result.toJs());
+}
+```
+
+다만 `using` 은 Pyodide 가 아니라 자바스크립트 엔진 쪽 기능이라 브라우저를 가린다. Chrome 151 에서 되는 것은 2026-08-23 에 확인했고, 다른 브라우저는 확인하지 않았다. 게다가 문법이라 미지원 브라우저에서는 파일 전체가 파싱 단계에서 죽는다. 배너를 띄울 틈도 없다. 그래서 **기본은 `try/finally` 로 쓰고, `using` 은 그것을 다루는 예제에서만 쓴다.**
 
 파이썬 함수를 JS 콜백으로 넘길 때는 `create_proxy()` 로 감싼다. 감싸지 않으면 호출이 끝나는 순간 프록시가 풀려서 다음 호출에 에러가 난다. 떼어 낼 때 `destroy()` 도 잊지 않는다.
 

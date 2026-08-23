@@ -24,7 +24,7 @@ Pyodide 를 예제로 익히는 학습용 저장소. `galleries/` 아래에 예�
 머지 후: /worktree-clean   → 완료된 worktree/브랜치 정리
 ```
 
-**기본 규칙**: 항상 이슈를 먼저 만들고 worktree 로 분기해서 작업한다. 사용자가 명시적으로 요청한 경우에만 현재 브랜치에서 직접 작업한다.
+기본 규칙은 이렇다. 항상 이슈를 먼저 만들고 worktree 로 분기해서 작업한다. 사용자가 명시적으로 요청한 경우에만 현재 브랜치에서 직접 작업한다.
 
 ## 커밋 규칙
 
@@ -41,7 +41,7 @@ Pyodide 를 예제로 익히는 학습용 저장소. `galleries/` 아래에 예�
 - worktree 위치: `../wasm-tutorials-worktrees/feature/<n>`
 - PR body 에 `Closes #N` 필수
 - PR 에는 브라우저에서 실제로 동작하는 화면 스크린샷을 첨부한다
-- push 는 `GH_TOKEN` 으로 한다. macOS 기본 osxkeychain 헬퍼에는 권한이 다른 별개의 토큰이 들어 있어서 403 이 난다
+- push 인증은 @.claude/rules/git-workflow.md 를 따른다
 
 ## 도구
 
@@ -83,7 +83,7 @@ galleries/NN-job-name/
 - **런타임은 `../_shared/pyodide.js` 의 `getPyodide()` 로만 받는다.** `loadPyodide()` 를 직접 부르면 6MB 를 다시 내려받고, CDN 주소가 예제마다 흩어진다
 - 로딩 중에는 `showLoading()` 으로 안내를 띄운다. 첫 방문자에게 빈 화면을 보이지 않는다
 - `../_shared/support.js` 로 기능을 감지하고, 미지원 브라우저에서는 안내 배너를 띄운 뒤 조용히 멈춘다
-- **`PyProxy` 를 놓아 준다.** `destroy()` 하거나 `using` 으로 감싼다. 파이썬 함수를 JS 콜백으로 넘길 때는 `create_proxy()` 로 감싼다
+- `PyProxy` 를 놓아 준다. `destroy()` 하거나 `using` 으로 감싼다. 파이썬 함수를 JS 콜백으로 넘길 때는 `create_proxy()` 로 감싼다
 - 새 예제를 추가하면 `galleries/README.md` 목차에도 넣는다. `mise run check` 가 확인한다
 - 코드 주석은 한국어로 쓰되, "무엇을" 이 아니라 "왜" 를 적는다
 
@@ -93,13 +93,13 @@ galleries/NN-job-name/
 
 **버전 체계가 바뀌었다. `0.29.x` 다음이 `314.0.0` 이고 앞 세 자리가 파이썬 버전(3.14)이다.** 웹 자료는 대부분 `0.26.x` 기준이라 그대로 베끼면 안 된다. 기억에 의존하지 말고 <https://pyodide.org/en/stable/> 를 확인하고, 의심스러우면 브라우저에서 직접 확인한다.
 
-314 에서 달라져서 옛 코드가 깨지는 것들이다.
+옛 코드가 깨지는 것들이다. 뒤의 두 개는 314 가 아니라 0.28 에서 들어갔지만, 옛 자료를 베낄 때 함께 걸린다.
 
 - 워커는 `new Worker(url, { type: 'module' })` 이어야 한다. `importScripts()` 방식은 지원하지 않는다
 - `sqlite3` 와 `lzma` 가 기본 번들에 들어갔다. `loadPackage("sqlite3")` 는 필요 없다
 - `ssl` 은 스텁이다. import 는 되지만 실제 TLS 는 `NotImplementedError` 를 던진다
-- 자바스크립트의 `null` 은 `jsnull` 로, `undefined` 는 `None` 으로 변환된다. 둘이 구별된다
-- `PyProxy` 에 `[Symbol.dispose]` 가 있어서 `using` 을 쓸 수 있다
+- (0.28.0 부터) 자바스크립트의 `null` 은 `jsnull` 로, `undefined` 는 `None` 으로 변환된다. 둘이 구별된다. 옛 동작으로 돌리는 `convertNullToNone` 옵션이 아직 있지만 없어질 예정이다
+- (0.28.0 부터) `PyProxy` 에 `[Symbol.dispose]` 가 있어서 `using` 을 쓸 수 있다. 다만 `using` 은 JS 엔진 쪽 기능이라 브라우저를 가린다. @.claude/rules/web-style.md 를 보자
 
 ## 참고 문서
 

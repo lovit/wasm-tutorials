@@ -11,7 +11,7 @@
 | **선형 메모리** | WASM 이 쓰는 메모리. 커다란 바이트 배열 하나가 전부다. 파이썬 객체도 전부 이 안에 있다 |
 | **Emscripten** | C/C++ 를 WASM 으로 컴파일해 주는 툴체인. 파일 읽기 같은 운영체제 기능을 자바스크립트로 흉내 내 주는 것까지가 이 도구의 일이다 |
 | **Pyodide** | CPython 을 Emscripten 으로 빌드한 것. 여기에 자바스크립트와 오가는 다리와 패키지 배포까지 얹혀 있다 |
-| **JSPI** | JavaScript Promise Integration. 동기 함수 안에서 비동기 작업을 기다릴 수 있게 해 주는 WASM 확장. 이것 덕분에 `input()` 이나 `requests.get()` 이 브라우저에서 동작한다 |
+| **JSPI** | JavaScript Promise Integration. 동기 함수 안에서 비동기 작업을 기다릴 수 있게 해 주는 WASM 확장. 파이썬 쪽에서는 `pyodide.ffi.run_sync()` 로 쓴다 |
 
 ## 값을 주고받기
 
@@ -52,3 +52,10 @@
 | **COOP / COEP** | cross-origin isolation 을 켜는 두 응답 헤더. `Cross-Origin-Opener-Policy` 와 `Cross-Origin-Embedder-Policy` |
 | **`SharedArrayBuffer`** | 여러 스레드가 함께 보는 메모리. 실행 중인 파이썬을 중단시키는 데 쓴다 |
 | **service worker** | 페이지와 네트워크 사이에 끼어드는 스크립트. GitHub Pages 처럼 헤더를 못 넣는 곳에서 COOP/COEP 를 대신 붙이는 데 쓸 수 있다 |
+| **SRI** | Subresource Integrity. 받아 온 파일의 해시를 미리 적어 두고 대조하는 것. 아래에 적었듯 이 저장소는 쓸 수 없다 |
+
+### 이 저장소가 지고 있는 신뢰
+
+예제가 실행하는 파이썬 런타임은 jsDelivr 에서 온다. 즉 CDN 이 내려주는 것을 그대로 믿는다는 뜻이다. SRI 로 대조하면 좋겠지만 dynamic `import()` 에는 `integrity` 를 걸 수단이 없다. `<script integrity>` 로 바꿀 수도 없다. ES module 이라서다.
+
+그래서 남는 것은 두 가지다. URL 에 버전을 고정해 두는 것(`v314.0.5`), 그리고 완전히 자립해야 한다면 Pyodide 배포본을 직접 호스팅하는 것. 후자는 저장소가 수백 MB 로 불어나므로 이 저장소는 택하지 않았다.

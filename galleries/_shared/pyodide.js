@@ -8,7 +8,8 @@
 // 앞 세 자리가 번들된 파이썬 버전(3.14)을 뜻하도록 체계가 바뀌었다.
 export const PYODIDE_VERSION = '314.0.5';
 
-const INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+/** 런타임과 패키지를 받아 오는 곳. 빌드 스크립트도 이 값을 읽어 쓴다. */
+export const INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
 
 // 부팅은 페이지당 한 번뿐이다. 두 번째 호출부터는 같은 Promise 를 돌려준다.
 let booting = null;

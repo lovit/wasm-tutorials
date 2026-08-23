@@ -36,9 +36,9 @@ mise run serve               # 정적 서버
 
 | 경로 | 내용 |
 | --- | --- |
-| [`galleries/`](galleries/README.md) | 예제와 튜토리얼. 기초 10 + 응용 6 + 고급 4 |
+| [`galleries/`](galleries/README.md) | 예제와 튜토리얼. 기초 · 응용 · 고급 순서로 쌓는다 |
 | [`docs/tutorials/`](docs/tutorials/README.md) | 원리 설명. WASM 이 어떻게 도는지부터 브라우저 제약까지 |
-| [`docs/packages.md`](docs/packages.md) | Pyodide 가 미리 빌드해 둔 패키지 356개 목록 |
+| [`docs/packages.md`](docs/packages.md) | Pyodide 가 미리 빌드해 둔 패키지 목록. 락파일에서 만든다 |
 | [`docs/glossary.md`](docs/glossary.md) | 용어 대응표 |
 | `scripts/` | 정적 서버와 검사 스크립트 (의존성 없음) |
 | `.claude/` | 개발 워크플로 커맨드, 리뷰 에이전트 |
