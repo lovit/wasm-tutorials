@@ -206,7 +206,7 @@ js.document.title = "가로챘습니다"
 
 ## 더 읽을 것
 
-`PyProxy` 가 왜 GC 로 안 걷히는지, `sys.last_exc` 를 꺼내면 무엇이 남는지는 [원리 문서](../../docs/tutorials/README.md)에서 다룬다.
+파이썬이 자기가 유닉스 위에 있다고 믿는 것, 그런데도 어떤 것은 되고 어떤 것은 안 되는 것은 [02. CPython 을 브라우저로 옮기기](../../docs/tutorials/02-emscripten-and-cpython.md)에서 다룬다. `PyProxy` 가 왜 GC 로 안 걷히는지는 [01. WebAssembly 는 어떻게 도는가](../../docs/tutorials/01-how-wasm-works.md)에 있다.
 
 ## 다음 예제
 

@@ -195,7 +195,7 @@ Expected argument 'buffer' to be an ArrayBuffer or an ArrayBuffer view
 
 ## 더 읽을 것
 
-MEMFS 가 어떻게 만들어졌는지, Emscripten 이 파일 관련 시스템 콜을 어떻게 흉내 내는지는 [원리 문서](../../docs/tutorials/README.md)에서 다룬다.
+MEMFS 가 어떻게 만들어졌는지, Emscripten 이 파일 관련 시스템 콜을 어떻게 흉내 내는지는 [02. CPython 을 브라우저로 옮기기](../../docs/tutorials/02-emscripten-and-cpython.md)에서 다룬다.
 
 ## 다음 예제
 

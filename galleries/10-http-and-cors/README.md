@@ -196,7 +196,7 @@ Access to fetch at 'https://example.com/' from origin 'http://127.0.0.1:4173' ha
 
 ## 더 읽을 것
 
-브라우저에서 무엇이 왜 없는지는 [원리 문서](../../docs/tutorials/README.md)에서 다룬다.
+브라우저에서 무엇이 왜 없는지, 되는 척하는 것과 깨끗이 막히는 것이 어떻게 갈리는지는 [02. CPython 을 브라우저로 옮기기](../../docs/tutorials/02-emscripten-and-cpython.md)에서 다룬다.
 
 ## 여기까지
 
