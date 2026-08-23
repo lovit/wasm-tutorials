@@ -3,6 +3,7 @@
 import base64
 import importlib
 import io
+import math
 import sys
 import time
 
@@ -23,8 +24,6 @@ def bench(size: int) -> list[dict]:
     rows = []
 
     started = time.perf_counter()
-    import math
-
     values = [math.sqrt(i) * math.sin(i) for i in range(size)]
     total = sum(values)
     rows.append(
@@ -48,6 +47,9 @@ def draw_live() -> str:
     import matplotlib.pyplot as plt
 
     importlib.reload(plt)
+    # use() 는 이름이 지금 백엔드와 같으면 아무것도 하지 않는다. 그래서 앞서 그린 그림이
+    # 그대로 열려 있고, show() 는 열린 그림을 전부 그린다. 두 번 누르면 옆으로 쌓인다.
+    plt.close("all")
 
     x = np.linspace(0, 4 * np.pi, 400)
     fig, ax = plt.subplots(figsize=(4.4, 3.2))
@@ -120,8 +122,10 @@ def backends() -> str:
         import matplotlib.pyplot as plt
 
         importlib.reload(plt)
-        plt.subplots()
-        plt.close("all")
+        # close("all") 로 치우면 화면에 떠 있는 그림까지 닫힌다. 그림은 그대로 있는데
+        # 도구 막대가 먹통이 되어, 보는 사람은 알아챌 방법이 없다. 만든 것만 닫는다.
+        probe_figure, _ = plt.subplots()
+        plt.close(probe_figure)
         lines.append("  그리기          성공")
     except Exception as exc:
         lines.append(

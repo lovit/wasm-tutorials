@@ -109,7 +109,7 @@ pngButton.addEventListener('click', () =>
       const encoded = fn();
       pngTarget.src = `data:image/png;base64,${encoded}`;
       pngTarget.alt = 'agg 백엔드가 그린 sin 곡선과 감쇠 곡선';
-      status.textContent = `PNG ${formatBytes(Math.round((encoded.length * 3) / 4))} 를 받아 넣었습니다.`;
+      status.textContent = `PNG ${formatBytes(atob(encoded).length)} 를 받아 넣었습니다.`;
     } catch (error) {
       renderPythonError(status, error);
     } finally {

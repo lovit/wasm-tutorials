@@ -2,7 +2,7 @@
 
 응용편 첫 예제다. 계산은 파이썬이 하고 그리기는 브라우저가 한다. 그 경계가 어디인지 본다.
 
-![예제 화면. 맨 위 상자에 17개 파일 18.19 MiB 를 받았다는 안내가 있다. numpy 는 얼마나 빠른가 절에는 배열 크기 선택칸과 버튼이 있고, 그 아래 표에 파이썬 리스트 136 ms, numpy 배열 17 ms 로 같은 합 -681.76 이 나란히 적혀 있다. 그림을 화면에 띄우는 두 가지 길 절에는 왼쪽에 기본 백엔드가 만든 sin 곡선 위젯이 도구 막대와 함께 있고, 오른쪽에 agg 가 만든 같은 모양의 PNG 가 있다. 맨 아래 백엔드 확인 상자에는 matplotlib 3.10.8, 기본 백엔드 webagg, matplotlib_pyodide 는 ModuleNotFoundError 라고 나온다.](screenshot.png)
+![예제 화면. 맨 위 상자에 PNG 30 KiB 를 받아 넣었다는 안내가 있다. numpy 는 얼마나 빠른가 절에는 배열 크기 선택칸과 버튼이 있고, 그 아래 표에 파이썬 리스트 143 ms, numpy 배열 16 ms 로 같은 합 -681.76 이 나란히 적혀 있다. 그림을 화면에 띄우는 두 가지 길 절에는 왼쪽에 기본 백엔드가 만든 sin 곡선 위젯이 Figure 1 제목과 도구 막대와 함께 있고, 오른쪽에 agg 가 만든 같은 모양의 PNG 가 있다. 두 그림 모두 sin 과 sin * exp(-x/8) 두 곡선에 범례가 붙어 있다. 맨 아래 백엔드 확인 상자에는 matplotlib 3.10.8, 기본 백엔드 webagg, matplotlib_pyodide 는 ModuleNotFoundError, 그리고 옛 자료대로 use 를 부르면 통과하는데 그릴 때 ModuleNotFoundError 가 난다고 적혀 있다.](screenshot.png)
 
 > 이 문서의 측정값은 Chrome 151.0.7922.34 (headless, macOS) 에서 2026-08-24 에 Pyodide 314.0.5, matplotlib 3.10.8, numpy 2.4.6 으로 잰 것이다. 시간은 기계와 캐시 상태에 따라 달라진다.
 
@@ -34,6 +34,8 @@ mise run serve
 
 세 배가 됐다. numpy wheel 이 2.8 MB, matplotlib 이 6.6 MB 이고 matplotlib 은 의존성을 열 개 끌고 온다. wheel 은 이미 zip 이라 전송 중에 더 줄지 않는다. [09. PyPI 에서 설치하기](../09-packages-micropip/)에서 본 그대로다.
 
+이건 처음 열었을 때 이야기다. 같은 브라우저로 다시 열면 6.56 MiB 라고 나온다. 열일곱 개 중 열여섯 개는 캐시에서 오고 matplotlib wheel 만 다시 받는다.
+
 그러니 `packages` 로 미리 받는 것이 중요하다. 부팅과 병렬로 받기 때문이다.
 
 ```js
@@ -63,7 +65,7 @@ numpy 쪽은 이렇다.
 | 파이썬 리스트 | 136 ms    | -681.76 |
 | numpy 배열    | 17 ms     | -681.76 |
 
-8배쯤이다. 네이티브 파이썬에서 재도 비슷한 비율이 나온다. numpy 가 빠른 까닭이 원소마다 인터프리터를 왕복하지 않고 C 로 컴파일된 반복문 안에서 끝내기 때문인데, 그 사정은 WebAssembly 위에서도 그대로다.
+9배쯤이다. 다시 재면 8배에서 9배 사이를 오간다. 네이티브 파이썬에서 재도 비슷한 비율이 나온다. numpy 가 빠른 까닭이 원소마다 인터프리터를 왕복하지 않고 C 로 컴파일된 반복문 안에서 끝내기 때문인데, 그 사정은 WebAssembly 위에서도 그대로다.
 
 바꿔 말하면 **브라우저라서 numpy 가 특별히 유리해지지도, 불리해지지도 않는다.** 다만 둘 다 네이티브보다 느리다. 여기서 잰 것은 브라우저 안에서의 상대 비교다.
 
@@ -209,8 +211,8 @@ DEFAULT_BACKEND = matplotlib.rcParams["backend"]
 | `ModuleNotFoundError: matplotlib_pyodide` | 314 락파일에 없다. `webagg` 나 `pyodide` 를 쓰면 된다 |
 | `use()` 는 됐는데 그릴 때 터진다 | `pyplot` 이 아직 안 올라왔으면 `use()` 가 검사를 미룬다 |
 | 그림이 페이지 맨 아래에 붙는다 | `document.pyodideMplTarget` 을 안 정해 뒀다 |
-| 한글 라벨이 네모로 나온다 | 번들에 든 폰트가 DejaVu 계열 20종뿐이고 한글 글리프가 없다 |
-| 콘솔에 `MatplotlibDeprecationWarning` 이 잔뜩 쌓인다 | `plt.show()` 안쪽에서 matplotlib 이 스스로 내는 것이다. 한 번 그릴 때 24건 나온다 |
+| 한글 라벨이 네모로 나온다 | 번들에 든 폰트에 한글 글리프가 없다. family 20종인데 DejaVu 5종에 나머지는 STIX 와 Computer Modern 이다 |
+| 콘솔에 `MatplotlibDeprecationWarning` 이 뜬다 | `plt.show()` 안쪽에서 matplotlib 이 스스로 내는 것이다. 첫 그리기에만 4건 보인다 |
 | PNG 를 여러 번 만들면 느려진다 | `plt.close()` 를 안 해 그림이 쌓였다 |
 | 레티나에서 그림 왼쪽 위만 보인다 | 파이썬은 2배로 그리는데 캔버스 버퍼가 1배다. §6 참고 |
 | 그림이 안 보이고 빈 상자만 있다 | 공통 CSS 가 `canvas` 에 배경을 준다. matplotlib 이 위에 겹쳐 놓은 캔버스가 불투명해져 덮는다 |
@@ -220,6 +222,6 @@ DEFAULT_BACKEND = matplotlib.rcParams["backend"]
 
 wheel 이 왜 압축되지 않는지, 네이티브 확장이 어떤 ABI 로 빌드돼야 하는지는 [패키지 목록](../../docs/packages.md)에 있다. numpy 배열이 WASM 메모리 어디에 있는지는 [01. WebAssembly 는 어떻게 도는가](../../docs/tutorials/01-how-wasm-works.md)에서 다룬다.
 
-## 다음 예제
+## 다음
 
-[12. 내 데이터로 분석하기](../12-csv-analysis/) — 파일을 올려도 밖으로 나가지 않는다는 것을 네트워크 탭으로 증명한다.
+응용편은 여기서 시작한다. 다음 예제들은 이 위에 얹는다. 올린 파일을 pandas 로 다루는 것, 이미지를 numpy 배열로 바꿔 캔버스에 되돌리는 것, 브라우저 안에서 모델을 학습시키는 것. [갤러리 목록](../)에서 이어서 볼 수 있다.

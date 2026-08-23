@@ -36,18 +36,17 @@ mise run serve    # http://localhost:4173/galleries/
 | 08 | [`08-file-system`](./08-file-system/) | 가짜 파일시스템, 파일 올리고 내려받기, 새로고침해도 남기기 |
 | 09 | [`09-packages-micropip`](./09-packages-micropip/) | PyPI 에서 바로 설치하기, 되는 것과 안 되는 것 가리기 |
 | 10 | [`10-http-and-cors`](./10-http-and-cors/) | 무엇이 어디서 막히는가. 소켓, TLS, CORS |
-| 11 | [`11-numpy-and-plots`](./11-numpy-and-plots/) | numpy 로 계산하고 그림을 화면에 올리는 두 가지 길 |
 
 ### 응용편
 
-| #   | 예제                    | 배우는 것                                          |
-| --- | ----------------------- | -------------------------------------------------- |
-| 11  | `11-numpy-and-plots`    | numpy 계산과 matplotlib 그림을 화면에              |
-| 12  | `12-csv-analysis`       | 올린 CSV 를 pandas 로. 데이터가 밖으로 안 나간다   |
-| 13  | `13-image-processing`   | 이미지를 numpy 배열로, 다시 캔버스로               |
-| 14  | `14-sklearn-in-browser` | 브라우저 안에서 도는 학습 루프                     |
-| 15  | `15-sql-workbench`      | 내장 `sqlite3` 와 duckdb, 새로고침해도 남는 데이터 |
-| 16  | `16-mini-repl`          | 앞의 기초를 합쳐 쓸 만한 것 하나                   |
+| # | 예제 | 배우는 것 |
+| --- | --- | --- |
+| 11 | [`11-numpy-and-plots`](./11-numpy-and-plots/) | numpy 로 계산하고 그림을 화면에 올리는 두 가지 길 |
+| 12 | `12-csv-analysis` | 올린 CSV 를 pandas 로. 데이터가 밖으로 안 나간다 |
+| 13 | `13-image-processing` | 이미지를 numpy 배열로, 다시 캔버스로 |
+| 14 | `14-sklearn-in-browser` | 브라우저 안에서 도는 학습 루프 |
+| 15 | `15-sql-workbench` | 내장 `sqlite3` 와 duckdb, 새로고침해도 남는 데이터 |
+| 16 | `16-mini-repl` | 앞의 기초를 합쳐 쓸 만한 것 하나 |
 
 ### 고급편
 
