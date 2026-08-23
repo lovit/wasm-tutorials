@@ -136,7 +136,7 @@ function page({ title, body, depth = 0, wide = false }) {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${title}</title>
+    <title>${escapeHtml(title)}</title>
     <link rel="stylesheet" href="${up}site.css" />
   </head>
   <body class="${wide ? 'wide' : ''}">
@@ -188,7 +188,7 @@ function attachSourceLinks(html, { blocks, files, dirPath }) {
     const note = found.exact ? '소스 보기' : '소스에서 이 부분';
     const url = blobUrl(`${dirPath}/${found.file}`, range);
 
-    return `${match}\n<p class="source-link"><a href="${url}" target="_blank" rel="noreferrer">${note} · <code>${label}</code></a></p>`;
+    return `${match}\n<p class="source-link"><a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${note} · <code>${escapeHtml(label)}</code></a></p>`;
   });
 
   return { html: result, linked };
@@ -199,7 +199,7 @@ function sourceListSection(files, dirPath) {
   const items = files
     .map((file) => {
       const url = blobUrl(`${dirPath}/${file.rel}`);
-      return `        <li><a href="${url}" target="_blank" rel="noreferrer"><code>${file.rel}</code></a> <span>${file.lines.length}줄</span></li>`;
+      return `        <li><a href="${escapeHtml(url)}" target="_blank" rel="noreferrer"><code>${escapeHtml(file.rel)}</code></a> <span>${file.lines.length}줄</span></li>`;
     })
     .join('\n');
 
@@ -209,7 +209,7 @@ function sourceListSection(files, dirPath) {
         <ul>
 ${items}
         </ul>
-        <p><a href="${treeUrl(dirPath)}" target="_blank" rel="noreferrer">폴더 전체 보기</a></p>
+        <p><a href="${escapeHtml(treeUrl(dirPath))}" target="_blank" rel="noreferrer">폴더 전체 보기</a></p>
       </section>
 `;
 }
