@@ -206,7 +206,7 @@ js.document.title = "가로챘습니다"
 
 ## 더 읽을 것
 
-`PyProxy` 가 왜 GC 로 안 걷히는지, `sys.last_exc` 를 꺼내면 무엇이 남는지는 [원리 문서](../../docs/tutorials/README.md)에서 다룬다.
+트레이스백이 브라우저 안에서도 그대로 살아 있는 것은 파이썬 인터프리터를 통째로 옮겨 왔기 때문이다. 그 이야기는 [02. CPython 을 브라우저로 옮기기](../../docs/tutorials/02-emscripten-and-cpython.md)에 있다. `PyProxy` 가 왜 GC 로 안 걷히는지는 [01. WebAssembly 는 어떻게 도는가](../../docs/tutorials/01-how-wasm-works.md)에서 다룬다.
 
 ## 다음 예제
 

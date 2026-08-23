@@ -228,7 +228,7 @@ try {
 
 ## 더 읽을 것
 
-`PyProxy` 가 왜 GC 로 안 걷히는지, 선형 메모리가 왜 반납되지 않는지는 [원리 문서](../../docs/tutorials/README.md)에서 다룬다.
+여기서 잰 힙이 무엇인지, 왜 자바스크립트 GC 가 그 안을 못 보는지, 왜 한번 늘면 줄지 않는지는 [01. WebAssembly 는 어떻게 도는가](../../docs/tutorials/01-how-wasm-works.md)에서 다룬다.
 
 ## 다음 예제
 

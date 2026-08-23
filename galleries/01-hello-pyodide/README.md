@@ -175,7 +175,7 @@ const isProxy = value instanceof pyodide.ffi.PyProxy;
 
 ## 더 읽을 것
 
-WebAssembly 가 무엇이고 CPython 이 어떻게 그 위로 올라갔는지는 [원리 문서](../../docs/tutorials/README.md)에서 다룬다.
+WASM 의 경계로 왜 숫자만 오가는지, 여기서 잰 6 MB 가 어디에 쓰이는지는 [01. WebAssembly 는 어떻게 도는가](../../docs/tutorials/01-how-wasm-works.md)에 있다. `sys.platform` 이 왜 `emscripten` 인지는 [02. CPython 을 브라우저로 옮기기](../../docs/tutorials/02-emscripten-and-cpython.md)에서 다룬다.
 
 ## 다음 예제
 
