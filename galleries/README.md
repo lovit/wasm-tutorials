@@ -32,7 +32,7 @@ mise run serve    # http://localhost:4173/galleries/
 | 06 | [`06-dom-from-python`](./06-dom-from-python/) | 파이썬에서 DOM 만지기, 핸들러를 넘길 때 걸리는 것들 |
 | 07 | [`07-callbacks-both-ways`](./07-callbacks-both-ways/) | 함수를 양쪽으로 넘기기, 빌린 손잡이와 넘겨준 손잡이 |
 | 08 | [`08-file-system`](./08-file-system/) | 가짜 파일시스템, 파일 올리고 내려받기, 새로고침해도 남기기 |
-| 09 | `09-packages-micropip` | PyPI 에서 바로 설치하기, 되는 것과 안 되는 것 가리기 |
+| 09 | [`09-packages-micropip`](./09-packages-micropip/) | PyPI 에서 바로 설치하기, 되는 것과 안 되는 것 가리기 |
 | 10 | `10-http-and-cors` | 왜 `requests` 가 그냥은 안 되는가 |
 
 ### 응용편
