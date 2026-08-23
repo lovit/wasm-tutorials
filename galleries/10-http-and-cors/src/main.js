@@ -39,7 +39,9 @@ async function start() {
   }
 
   try {
-    const source = await fetch('src/main.py').then((response) => response.text());
+    const response = await fetch('src/main.py');
+    if (!response.ok) throw new Error(`src/main.py 를 받지 못했습니다 (${response.status})`);
+    const source = await response.text();
     // 이 손잡이는 페이지가 사는 동안 계속 쓰므로 일부러 안 놓는다.
     pyGlobals = pyodide.runPython(`${source}\n\nglobals()`);
   } finally {
@@ -49,6 +51,7 @@ async function start() {
 
   buildTargets();
   probeButton.addEventListener('click', () => run(probeResult, 'probe', urlInput.value));
+  // 세 버튼이 같은 런타임을 쓰고 결과가 겹칠 수 있어서 함께 잠근다.
   layersButton.addEventListener('click', () => run(layersResult, 'layers'));
   missingButton.addEventListener('click', () => run(missingResult, 'missing'));
 
@@ -88,9 +91,9 @@ function buildTargets() {
 
 /** 파이썬 함수를 부르고 결과를 상자에 적는다. 비동기든 아니든 같은 모양으로 다룬다. */
 async function run(box, name, ...args) {
-  box.replaceChildren();
   box.textContent = '두드려 보는 중입니다…';
-  probeButton.disabled = true;
+  const buttons = [probeButton, layersButton, missingButton];
+  for (const button of buttons) button.disabled = true;
 
   const fn = pyGlobals.get(name);
   try {
@@ -100,6 +103,6 @@ async function run(box, name, ...args) {
     renderPythonError(box, error);
   } finally {
     fn.destroy();
-    probeButton.disabled = false;
+    for (const button of buttons) button.disabled = false;
   }
 }

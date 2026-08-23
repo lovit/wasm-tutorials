@@ -4,7 +4,9 @@ import socket
 import ssl
 import time
 from collections.abc import Callable
+from urllib.parse import urlparse
 
+import js
 from pyodide.http import open_url, pyfetch
 
 TARGETS = {
@@ -15,7 +17,20 @@ TARGETS = {
 
 
 def brief(exc: Exception) -> str:
-    return f"{type(exc).__name__}: {str(exc).partition(chr(10))[0][:110]}"
+    return f"{type(exc).__name__}: {str(exc).partition(chr(0x0A))[0][:110]}"
+
+
+def host_and_port(url: str) -> tuple[str, int]:
+    """주소에서 호스트와 포트를 뽑는다. 상대 경로면 지금 페이지 기준으로 채운다.
+
+    조용한 대체값을 두지 않는다. 못 뽑으면 그렇다고 말하는 편이, 엉뚱한 데를 두드려 놓고
+    그 결과를 이 주소의 결과인 양 보여 주는 것보다 낫다.
+    """
+    text = url if "//" in url else f"//{js.location.host}{url}"
+    parsed = urlparse(text, scheme=js.location.protocol.rstrip(":"))
+    if not parsed.hostname:
+        raise ValueError(f"주소에서 호스트를 못 뽑았습니다: {url}")
+    return parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80)
 
 
 async def try_pyfetch(url: str) -> str:
@@ -33,7 +48,7 @@ def try_requests(url: str) -> str:
     """평범한 requests. 314 에서는 urllib3 가 브라우저 쪽으로 우회해 준다."""
     import requests
 
-    response = requests.get(url, timeout=10)
+    response = requests.get(url, timeout=3)
     return f"{response.status_code}, {len(response.text)}자 ({type(response.raw).__module__})"
 
 
@@ -41,22 +56,20 @@ def try_urllib(url: str) -> str:
     """표준 라이브러리. 소켓과 TLS 를 거치려 한다."""
     import urllib.request
 
-    with urllib.request.urlopen(url, timeout=10) as response:
+    with urllib.request.urlopen(url, timeout=3) as response:
         return f"{response.status}"
 
 
 def try_socket(url: str) -> str:
     """가장 낮은 층. 여기가 진짜 벽이다."""
-    host = url.split("//")[-1].split("/")[0] or "example.com"
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(3)
-    try:
-        sock.connect((host, 80))
+    host, port = host_and_port(url)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(3)
+        # connect 는 예외를 내지 않는다. 뒤에서 WebSocket 을 열고 그것을 소켓인 척한다.
+        # 주고받으려는 순간에야 막힌다.
+        sock.connect((host, port))
         sock.sendall(f"GET / HTTP/1.0\r\nHost: {host}\r\n\r\n".encode())
-        data = sock.recv(64)
-        return f"{len(data)}바이트 받음"
-    finally:
-        sock.close()
+        return f"{len(sock.recv(64))}바이트 받음"
 
 
 SYNC_WAYS: dict[str, Callable[[str], str]] = {
@@ -68,7 +81,7 @@ SYNC_WAYS: dict[str, Callable[[str], str]] = {
 
 
 async def probe(url: str) -> str:
-    """네 가지 길로 같은 주소를 두드려 보고 결과를 나란히 적는다."""
+    """다섯 가지 길로 같은 주소를 두드려 보고 결과를 나란히 적는다."""
     lines = []
 
     started = time.monotonic()
@@ -97,25 +110,32 @@ def layers() -> str:
     """무엇이 어디서 막히는지 층으로 정리한다."""
     lines = ["아래에서 위로 쌓인다. 아래가 막히면 그 위도 다 막힌다.", ""]
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(2)
-    try:
-        sock.connect(("example.com", 80))
-        made = "예외 없이 연결된 것처럼 보인다"
-    except Exception as exc:
-        made = f"막힘 — {brief(exc)}"
-    finally:
-        sock.close()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(2)
+        try:
+            sock.connect(("example.com", 80))
+            made = "예외 없이 연결된다. 없는 호스트에도 그렇다"
+        except Exception as exc:
+            made = f"막힘 — {brief(exc)}"
+        try:
+            sock.sendall(b"GET / HTTP/1.0\r\n\r\n")
+            sent = "예외 없음"
+        except Exception as exc:
+            sent = brief(exc)
     lines.append(f"1. 소켓        {made}")
-    lines.append("   그런데 보내고 받으려 하면 아무것도 오지 않고 시간만 흐른다.")
+    lines.append(f"   그런데 보내려 하면 곧바로 막힌다 — {sent}")
+    lines.append(
+        "   콘솔에 WebSocket connection to 'ws://…' failed 가 남는 것이 그 흔적이다."
+    )
 
+    # 컨텍스트 만들기와 감싸기를 갈라 잡는다. 한꺼번에 잡으면 어디서 막혔는지 못 적는다.
+    context = ssl.create_default_context()
     try:
-        context = ssl.create_default_context()
-        raw = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        context.wrap_socket(raw, server_hostname="example.com")
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as raw:
+            context.wrap_socket(raw, server_hostname="example.com")
         tls = "된다"
     except Exception as exc:
-        tls = f"막힘 — {brief(exc)}"
+        tls = f"컨텍스트는 만들어지는데 감싸는 데서 막힘 — {brief(exc)}"
     lines.append(f"2. TLS         {tls}")
     lines.append(f"   ssl.OPENSSL_VERSION 이 {ssl.OPENSSL_VERSION!r} 이다.")
 
