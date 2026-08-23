@@ -8,13 +8,13 @@
 
 WebAssembly 는 브라우저가 실행할 수 있는 저수준 명령어 형식이다. 이름에 "Assembly" 가 붙었지만 특정 CPU 의 기계어가 아니라, 어느 CPU 에서든 같은 뜻이 되도록 정의된 가상 명령어 집합이다. 브라우저가 그것을 받아 그 자리에서 진짜 기계어로 번역한다.
 
-여기서 오해하기 쉬운 것이 하나 있다. WASM 이 자바스크립트를 밀어내는 것이 아니다. WASM 모듈은 혼자 뜨지 못한다. 자바스크립트가 파일을 받아 오고, 컴파일을 시키고, 인스턴스를 만들고, 함수를 불러 줘야 한다. [01. 처음 만나는 Pyodide](../../galleries/01-hello-pyodide/) 가 하는 일이 정확히 그것이다. `loadPyodide()` 는 자바스크립트 함수이고, 그 안에서 9 MB 짜리 `.wasm` 을 받아 인스턴스를 만든다.
+여기서 오해하기 쉬운 것이 하나 있다. WASM 이 자바스크립트를 밀어내는 것이 아니다. WASM 모듈은 혼자 뜨지 못한다. 자바스크립트가 파일을 받아 오고, 컴파일을 시키고, 인스턴스를 만들고, 함수를 불러 줘야 한다. [01. 처음 만나는 Pyodide](../../galleries/01-hello-pyodide/) 가 하는 일이 정확히 그것이다. `loadPyodide()` 는 자바스크립트 함수이고, 그 안에서 `.wasm` 을 받아 인스턴스를 만든다. 그 파일은 압축을 풀면 9.15 MiB 이고, brotli 로 눌려 오므로 선을 타는 것은 3.28 MiB 다.
 
 브라우저에 없는 것을 WASM 이 만들어 주지도 않는다. WASM 은 화면을 못 그리고, 파일을 못 읽고, 네트워크를 못 연다. 그런 일은 전부 자바스크립트를 거쳐야 한다. [10. 왜 requests 가 안 되는가](../../galleries/10-http-and-cors/) 에서 소켓이 막히는 이유가 여기 있다. 브라우저가 파이썬에게만 인색한 것이 아니라, WASM 이라는 층 자체가 그런 통로를 갖고 있지 않다.
 
 ## 경계로는 숫자만 오간다
 
-이것이 이 문서에서 가장 중요한 한 줄이다. WASM 함수는 숫자만 받고 숫자만 돌려준다. `i32`, `i64`, `f32`, `f64` 넷이 전부다.
+이것이 이 문서에서 가장 중요한 한 줄이다. WASM 함수는 숫자만 받고 숫자만 돌려준다. 숫자형은 `i32`, `i64`, `f32`, `f64` 넷이다. 나중에 벡터형(`v128`)과 참조형이 더해졌지만, 여기서 다루는 이야기는 넷으로 충분하다.
 
 말로만 하면 와닿지 않으니 가장 작은 WASM 모듈을 하나 만들어 확인했다. `i32` 두 개를 받아 더해 돌려주는 함수 하나짜리다. 여기에 자바스크립트 값을 이것저것 넣어 보면 이렇게 된다.
 
@@ -28,7 +28,9 @@ WebAssembly 는 브라우저가 실행할 수 있는 저수준 명령어 형식�
 | `add([7], 1)`        | `8`           | 배열이 `7` 로 바뀌었다         |
 | `add({a: 1}, 1)`     | `1`           | 객체는 `NaN` 을 거쳐 0 이 됐다 |
 
-에러가 나지 않는다는 것이 핵심이다. 무엇을 넣든 숫자로 바꿔서 넣는다. 바꿀 수 없으면 0 이 된다.
+자바스크립트의 `ToNumber` 를 그냥 한 번 거치는 것이다. `null` 과 `undefined` 도 조용히 0 이 된다. 예외를 내는 것은 `ToNumber` 자체가 거부하는 BigInt 와 Symbol 둘뿐이다.
+
+숫자로 바뀌지 않는 값이라고 막아 주지 않는다는 것이 핵심이다. `{a: 1}` 은 `NaN` 을 거쳐 0 이 되고, 아무 일도 없었던 것처럼 계산이 이어진다.
 
 그러면 파이썬 문자열은 어떻게 자바스크립트로 건너오는가. **건너오지 않는다.** WASM 메모리 안에 그대로 있고, 자바스크립트는 그것이 있는 위치를 나타내는 숫자 하나를 받는다. 그 숫자를 들고 메모리에서 바이트를 읽어 자바스크립트 문자열을 새로 만드는 일은 Pyodide 가 대신해 준다.
 
@@ -65,7 +67,15 @@ sysconfig HOST_GNU_TYPE = wasm32-unknown-emscripten
 
 웹에서 "WASM 은 2GB 제한" 이라는 말을 종종 보는데, 그것은 Emscripten 의 기본 설정값 이야기이지 형식의 상한이 아니다. Pyodide 는 그 값을 올려서 빌드한다.
 
-다만 **런타임에서 선언된 최댓값을 직접 읽어 확인하지는 못했다.** `WebAssembly.Memory.prototype.type()` 이 있으면 읽을 수 있는데 Chrome 151 에는 없었다 (`mem.type is not a function`). 그래서 위의 4 GiB 는 포인터 폭에서 따라 나오는 값이고, Pyodide 가 실제로 그 상한까지 열어 두었는지는 빌드 설정을 봐야 안다.
+Pyodide 가 실제로 그 상한까지 열어 뒀는지도 확인할 수 있다. `.wasm` 파일 안에는 메모리를 얼마로 선언했는지가 적혀 있다. 그 자리를 직접 읽으면 이렇다.
+
+```text
+memory section: flags=1 min=480 pages = 30.00 MiB | max=65536 pages = 4.00 GiB
+```
+
+WASM 의 페이지는 64 KiB 다. 최소 480 페이지로 시작해 최대 65,536 페이지까지 자란다고 선언돼 있다. 앞에서 잰 `HEAP8.length` 30.00 MiB 가 이 `min` 과 정확히 같고, `max` 는 wasm32 가 가리킬 수 있는 끝까지다.
+
+런타임 쪽에서 같은 값을 읽는 방법도 있기는 하다. `WebAssembly.Memory.prototype.type()` 인데 Chrome 151 에는 없었다 (`mem.type is not a function`). 그래서 파일을 뜯어 읽었다.
 
 ## MIME 을 틀리면 아예 안 뜬다
 
@@ -73,13 +83,13 @@ sysconfig HOST_GNU_TYPE = wasm32-unknown-emscripten
 
 ```text
 application/wasm           → 성공, add(2,3)=5
-application/octet-stream   → TypeError: Incorrect response MIME type. Expected 'application/wasm'.
-text/plain                 → TypeError: Incorrect response MIME type. Expected 'application/wasm'.
+application/octet-stream   → TypeError: Failed to execute 'compile' on 'WebAssembly': Incorrect response MIME type. Expected 'application/wasm'.
+text/plain                 → TypeError: Failed to execute 'compile' on 'WebAssembly': Incorrect response MIME type. Expected 'application/wasm'.
 ```
 
 파일 내용은 셋 다 똑같다. 브라우저가 헤더만 보고 거부한다.
 
-`WebAssembly.instantiateStreaming()` 은 파일을 다 받기 전에 받는 대로 컴파일을 시작한다. 9 MB 를 다 기다렸다가 컴파일하는 것보다 빠르다. 대신 브라우저가 스트림 앞부분만 보고 이게 정말 WASM 인지 판단해야 하는데, 그 판단을 MIME 에 맡긴다. 그래서 엄격하다.
+`WebAssembly.instantiateStreaming()` 은 파일을 다 받기 전에 받는 대로 컴파일을 시작한다. 9 MiB 를 다 받아 놓고 컴파일하는 것보다 빠르다. 대신 브라우저가 스트림 앞부분만 보고 이게 정말 WASM 인지 판단해야 하는데, 그 판단을 MIME 에 맡긴다. 그래서 엄격하다.
 
 이 저장소의 `scripts/serve.mjs` 가 MIME 표에 `.wasm` 을 넣어 둔 이유가 이것이다. 그게 없으면 예제가 하나도 안 뜬다.
 
@@ -87,9 +97,26 @@ text/plain                 → TypeError: Incorrect response MIME type. Expected
 
 WASM 에는 나중에 추가된 기능이 여럿 있고, Pyodide 의 여러 제약이 그 기능이 있느냐 없느냐에 걸려 있다.
 
-**SIMD** 는 숫자 여러 개를 한 명령으로 처리하는 것이다. numpy 나 이미지 처리가 빨라진다. Pyodide 가 쓰고 있다.
+**SIMD** 는 숫자 여러 개를 한 명령으로 처리하는 것이다. numpy 나 이미지 처리가 빨라진다. 그런데 314.0.5 배포본은 쓰지 않는다. CPython 빌드 플래그에 `-msimd128` 이 없고, numpy 도 스스로 그렇다고 답한다.
 
-**스레드** 는 `SharedArrayBuffer` 위에 얹혀 있고, 그것을 쓰려면 문서가 cross-origin isolation 상태여야 한다. 파이썬의 `threading` 이 브라우저에서 안 되는 이유가 여기 있다 — 10번 예제에서 `RuntimeError: can't start new thread` 로 확인했다. 이 이야기는 고급편의 cross-origin isolation 예제와 인터럽트 예제에서 다룬다.
+```text
+-msimd128 in CFLAGS      False
+numpy.__cpu_baseline__   []
+```
+
+WASM 에 확장이 있다는 것과 이 배포본이 그것을 쓴다는 것은 다른 이야기다.
+
+**스레드** 는 `SharedArrayBuffer` 위에 얹혀 있고, 그것을 쓰려면 문서가 cross-origin isolation 상태여야 한다. 그런데 파이썬의 `threading` 이 막히는 이유는 그것이 아니다. 격리를 켜고 다시 물어봤다.
+
+```text
+crossOriginIsolated = true
+SharedArrayBuffer   = function / new → ok
+threading           RuntimeError: can't start new thread
+```
+
+`SharedArrayBuffer` 가 실제로 만들어지는 상태인데도 결과가 같다. 배포되는 Pyodide 빌드에 pthreads 가 들어 있지 않아서다. 파이썬이 알려주는 빌드 플래그에도 `-pthread` 가 없다.
+
+**격리는 필요조건이지 충분조건이 아니다.** 격리를 켜면 `threading` 이 열릴 것이라 기대하면 안 된다. 격리가 실제로 열어 주는 것은 실행 중인 파이썬을 밖에서 멈추는 길이고, 그 이야기는 고급편의 cross-origin isolation 예제와 인터럽트 예제에서 다룬다.
 
 **JSPI** 는 동기 함수 안에서 비동기 작업을 기다릴 수 있게 해 주는 것이다. 파이썬 쪽에서는 `pyodide.ffi.run_sync()` 로 쓴다. 브라우저별 지원 상태는 아직 확인하지 않았고, 고급편의 인터럽트 예제에서 직접 확인해 적는다.
 

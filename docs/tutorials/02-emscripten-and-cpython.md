@@ -31,7 +31,9 @@ os.statvfs('/')  f_bsize=4096, f_frsize=4096, f_blocks=1000…
 /proc 있나        True
 ```
 
-블록 크기까지 그럴듯하게 답한다. 하지만 새로고침하면 전부 사라진다. 애초에 디스크에 닿은 적이 없기 때문이다.
+블록 크기까지 그럴듯하게 답한다. 다만 흉내의 깊이는 얕다. `/proc` 안에 들어가 보면 `['self']` 하나뿐이다.
+
+그리고 새로고침하면 전부 사라진다. 애초에 디스크에 닿은 적이 없기 때문이다.
 
 [08. 파일 다루기](../../galleries/08-file-system/) 가 이 지점을 다룬다. 남기고 싶으면 IndexedDB 위에 얹힌 IDBFS 를 마운트하고 `FS.syncfs()` 를 직접 불러야 한다. 자동으로 되지 않는다. 자동으로 하려면 파이썬이 쓸 때마다 비동기 저장을 기다려야 하는데, 동기 함수인 `write()` 안에서 그럴 방법이 없다.
 
@@ -45,7 +47,8 @@ os.statvfs('/')  f_bsize=4096, f_frsize=4096, f_blocks=1000…
 | `subprocess.run(["ls"])`     | `OSError: [Errno 138] emscripten does not support processes.` |
 | `threading` 으로 스레드 시작 | `RuntimeError: can't start new thread`                        |
 | `socket` 으로 주고받기       | `TimeoutError` 또는 `BlockingIOError`                         |
-| `ssl.wrap_socket`            | `RuntimeError: TLS not supported in this environment`         |
+| `SSLContext.wrap_socket()`   | `RuntimeError: TLS not supported in this environment`         |
+| `ssl.wrap_socket`            | `AttributeError` — 3.12 에서 없어진 함수다                    |
 | `import resource`            | `ModuleNotFoundError`                                         |
 | `signal.alarm`               | `AttributeError`                                              |
 | `os.cpu_count()`             | `1`                                                           |
@@ -69,7 +72,15 @@ time.tzname             ('UTC+0900', 'UTC+0900')
 
 `mmap` 은 익명 매핑이라면 된다. 어차피 선형 메모리 안에서 자리를 잡는 일이라 흉내 낼 것이 별로 없다. `os.getpid()` 는 42 를 준다 — 프로세스가 없으니 지어낸 값이지만, 그 값을 로그 파일 이름에나 쓰는 코드는 아무 일 없이 돈다.
 
-시간대가 `UTC+0900` 으로 나온 것은 눈여겨볼 만하다. 브라우저의 시간대를 읽어 파이썬에 심어 주는 `pyodide-unix-timezones` 가 하는 일이다. 이 값은 이 문서를 만든 기계가 한국 시간대라서 그렇게 나온 것이고, 다른 곳에서 열면 다르게 나온다.
+시간대가 `UTC+0900` 으로 나온 것은 눈여겨볼 만하다. 브라우저의 시간대를 읽어 파이썬에 심어 주는 `pyodide-unix-timezones` 가 하는 일이다. 정말 따라가는지 브라우저 쪽 시간대를 바꿔 가며 확인했다.
+
+| 브라우저 시간대  | `time.tzname`              | 파이썬이 본 시각 |
+| ---------------- | -------------------------- | ---------------- |
+| Asia/Seoul       | `('UTC+0900', 'UTC+0900')` | 23:10            |
+| Europe/Berlin    | `('UTC+0100', 'UTC+0200')` | 16:10            |
+| America/New_York | `('UTC-0500', 'UTC-0400')` | 10:10            |
+
+베를린과 뉴욕에서 이름이 두 개로 갈리는 것이 눈에 띈다. 표준시와 서머타임이다. 오프셋 하나만 받아 적은 것이 아니라 진짜 시간대 데이터를 심는다는 뜻이다. `os.environ["TZ"]` 는 계속 비어 있으니 환경변수로 넘기는 방식도 아니다.
 
 ## 이 층이 예제로 어떻게 드러나는가
 
