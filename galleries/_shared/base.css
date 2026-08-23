@@ -78,6 +78,46 @@ pre.output {
   white-space: pre;
 }
 
+/* 값을 나열하는 두 열짜리 표. 여러 예제가 계측 결과를 이렇게 보여 준다. */
+table.metrics {
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+table.metrics th,
+table.metrics td {
+  padding: 0.45rem 1.2rem 0.45rem 0;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+table.metrics thead th {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+table.metrics tbody th {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+table.metrics tbody td {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 버튼 옆이나 입력칸 아래에 붙는 짧은 설명. */
+.hint {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 /* 코드를 입력받는 자리. 탭 폭을 파이썬 관례에 맞춘다. */
 textarea.code {
   display: block;

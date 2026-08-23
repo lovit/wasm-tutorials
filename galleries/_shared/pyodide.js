@@ -79,7 +79,9 @@ const LOADING_CLASS = 'pyodide-loading';
  * 첫 방문자는 6MB 를 받는다. 그동안 빈 화면을 두면 고장 난 것처럼 보인다.
  */
 export function showLoading(target, message = 'Python 런타임을 받는 중입니다') {
-  const box = document.createElement('p');
+  // span 을 쓰는 이유가 있다. 예제의 출력 자리는 대개 pre 인데, pre 안에는 p 나 div 를
+  // 넣을 수 없다. span 은 어디에나 들어가므로 부르는 쪽이 자리를 가리지 않아도 된다.
+  const box = document.createElement('span');
   box.className = LOADING_CLASS;
   box.setAttribute('role', 'status');
   box.textContent = `${message}…`;
@@ -105,7 +107,9 @@ export function showLoading(target, message = 'Python 런타임을 받는 중입
  * 포맷된 문자열만 있으므로 그걸 그대로 보여 주는 것이 맞다.
  */
 export function renderPythonError(target, error) {
-  const box = document.createElement('pre');
+  // pre 가 아니라 code 인 이유는 showLoading 과 같다. pre 안에 pre 는 들어갈 수 없다.
+  // 줄바꿈은 CSS 로 살린다.
+  const box = document.createElement('code');
   box.className = 'pyodide-error';
   box.setAttribute('role', 'alert');
   box.textContent = error?.message ?? String(error);
@@ -127,6 +131,7 @@ function injectStyle() {
   style.id = STYLE_ID;
   style.textContent = `
     .${LOADING_CLASS} {
+      display: block;
       margin: 0;
       padding: 0.75rem 1rem;
       border-radius: var(--radius, 10px);
@@ -135,6 +140,7 @@ function injectStyle() {
       font-size: 0.95rem;
     }
     .pyodide-error {
+      display: block;
       margin: 0;
       padding: 0.75rem 1rem;
       border-left: 4px solid #d1242f;
