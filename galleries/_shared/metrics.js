@@ -21,11 +21,12 @@ export function addMetricRow(tbody, label, value) {
 }
 
 /**
- * 바이트를 사람이 읽는 크기로. 1024 로 나누므로 단위는 MiB 다.
+ * 바이트를 사람이 읽는 크기로. 1024 기준이라 1 KiB 미만은 B, 1 MiB 미만은 KiB 다.
  * MB 로 적으면 십진 단위와 헷갈린다. 바이트를 가르치는 예제에서 그러면 안 된다.
  */
 export function formatBytes(bytes) {
-  if (!bytes) return '0';
+  if (!bytes) return '0 B';
+  if (bytes < 1024) return `${bytes} B`;
   const value = bytes / 1024 / 1024;
   return value < 1 ? `${Math.round(bytes / 1024)} KiB` : `${value.toFixed(2)} MiB`;
 }
