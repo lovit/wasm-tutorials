@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>13. 이미지를 옮기는 값</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">← 갤러리 목록</a>
+      <h1>13. 이미지를 옮기는 값</h1>
+      <p class="lede">
+        픽셀 백만 개를 파이썬과 자바스크립트 사이로 옮긴다. 복사하느냐 마느냐로 천 배가 갈린다.
+      </p>
+
+      <pre class="output" id="status" role="status"></pre>
+
+      <section>
+        <h2>이미지 고르기</h2>
+        <div class="controls">
+          <label class="inline" for="file">내 이미지</label>
+          <input type="file" id="file" accept="image/*" disabled />
+          <button id="sample" disabled>예제 그림 그리기</button>
+        </div>
+        <div class="canvases">
+          <figure>
+            <figcaption>원본</figcaption>
+            <canvas id="source" width="320" height="240"></canvas>
+          </figure>
+          <figure>
+            <figcaption>파이썬이 손본 것</figcaption>
+            <canvas id="target" width="320" height="240"></canvas>
+          </figure>
+        </div>
+        <div class="controls">
+          <button class="filter" data-filter="gray" disabled>흑백 (numpy)</button>
+          <button class="filter" data-filter="invert" disabled>반전 (numpy)</button>
+          <button class="filter" data-filter="edge" disabled>윤곽 (Pillow)</button>
+          <button class="filter" data-filter="posterize" disabled>포스터화 (Pillow)</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>돌려받는 두 가지 길</h2>
+        <p class="hint">
+          같은 배열을 <code>getBuffer()</code> 로 받을 때와 <code>toJs()</code> 로 받을 때를 잰다.
+        </p>
+        <div class="controls">
+          <button id="bench" disabled>크기를 키워 가며 재기</button>
+        </div>
+        <div role="status">
+          <table class="metrics">
+            <thead>
+              <tr>
+                <th scope="col">크기</th>
+                <th scope="col">바이트</th>
+                <th scope="col">getBuffer</th>
+                <th scope="col">toJs</th>
+                <th scope="col">배</th>
+              </tr>
+            </thead>
+            <tbody id="bench-rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>뷰를 들고 있으면 생기는 일</h2>
+        <p class="hint">
+          <code>getBuffer()</code> 가 주는 것은 WASM 메모리를 들여다보는 창이다. 그 메모리가 자라면
+          창이 닫힌다.
+        </p>
+        <div class="controls">
+          <button id="detach" disabled>뷰를 잡은 채 파이썬에 큰 것 만들기</button>
+        </div>
+        <pre class="output" id="detach-result" role="status"></pre>
+      </section>
+
+      <p class="note">numpy 와 Pillow 를 받는다. 얼마나 받았는지 맨 위에 적어 둔다.</p>
+
+      <a class="back" href="../12-csv-analysis/">← 이전: 12. 내 데이터가 밖으로 안 나간다</a>
+    </main>
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
