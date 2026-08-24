@@ -43,7 +43,7 @@ mise run serve    # http://localhost:4173/galleries/
 | --- | --- | --- |
 | 11 | [`11-numpy-and-plots`](./11-numpy-and-plots/) | numpy 로 계산하고 그림을 화면에 올리는 두 가지 길 |
 | 12 | [`12-csv-analysis`](./12-csv-analysis/) | 올린 CSV 를 pandas 로. 나가는 요청을 세는 법과 그 세기의 한계 |
-| 13 | `13-image-processing` | 이미지를 numpy 배열로, 다시 캔버스로 |
+| 13 | [`13-image-processing`](./13-image-processing/) | 픽셀을 옮기는 두 길. 제로카피와 복사, 그리고 뷰가 닫히는 것 |
 | 14 | `14-sklearn-in-browser` | 브라우저 안에서 도는 학습 루프 |
 | 15 | `15-sql-workbench` | 내장 `sqlite3` 와 duckdb, 새로고침해도 남는 데이터 |
 | 16 | `16-mini-repl` | 앞의 기초를 합쳐 쓸 만한 것 하나 |
