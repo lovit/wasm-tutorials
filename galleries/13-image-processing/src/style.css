@@ -1,0 +1,23 @@
+.canvases {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1.25rem;
+  margin: 1rem 0;
+}
+
+.canvases figure {
+  margin: 0;
+}
+
+.canvases figcaption {
+  margin-bottom: 0.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.canvases canvas {
+  width: 100%;
+  height: auto;
+  /* 픽셀을 보여 주는 예제라 확대할 때 뭉개지 않는다. */
+  image-rendering: pixelated;
+}
